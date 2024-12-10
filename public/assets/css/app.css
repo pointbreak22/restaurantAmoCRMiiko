@@ -1,0 +1,15 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, serif;
+    background: aliceblue;
+    padding: 20px;
+}
+
+h3 {
+    font-size: 28px;
+}
