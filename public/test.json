@@ -1,0 +1,118 @@
+{
+  "organizationId": "7bc05553-4b68-44e8-b7bc-37be63c6d9e9",
+  "terminalGroupId": "4fab19a5-203c-4bf5-94eb-f572aa8b117b",
+  "order": {
+    "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+    "externalNumber": "string",
+    "tableIds": [
+      "497f6eca-6276-4993-bfeb-53cbbbba6f08"
+    ],
+    "customer": {
+      "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+      "name": "string",
+      "surname": "string",
+      "comment": "string",
+      "birthdate": "2019-08-24 14:15:22.123",
+      "email": "string",
+      "shouldReceivePromoActionsInfo": true,
+      "shouldReceiveOrderStatusNotifications": true,
+      "gender": "NotSpecified",
+      "type": "string"
+    },
+    "phone": "string",
+    "guestCount": 0,
+    "guests": {
+      "count": 0
+    },
+    "tabName": "string",
+    "menuId": null,
+    "items": [
+      {
+        "type": "string",
+        "amount": 0,
+        "productSizeId": "b4513563-032a-4dbc-8894-4b05c402f7de",
+        "comboInformation": {
+          "comboId": "1fa22bdf-8ea5-4d3f-a6cf-3abb16e9aa74",
+          "comboSourceId": "dd3c663c-f4a0-4960-be17-31d91758b3a4",
+          "comboGroupId": "2cb9710d-2ed9-4514-8333-275a9727b4dd",
+          "comboGroupName": "string"
+        },
+        "comment": "string"
+      }
+    ],
+    "combos": [
+      {
+        "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+        "name": "string",
+        "amount": 0,
+        "price": 0,
+        "sourceId": "797f5a94-3689-4ac8-82fd-d749511ea2b2",
+        "programId": "bc59f66b-913a-48ec-ae2b-7ee29d7bcfbb",
+        "sizeId": "f98600f7-1d0f-4a64-936e-93e133055658"
+      }
+    ],
+    "payments": [
+      {
+        "paymentTypeKind": "string",
+        "sum": 0,
+        "paymentTypeId": "a681b746-24d1-4f1c-aa71-6af3f1e19567",
+        "isProcessedExternally": true,
+        "paymentAdditionalData": {
+          "type": "string"
+        },
+        "isFiscalizedExternally": true,
+        "isPrepay": true
+      }
+    ],
+    "tips": [
+      {
+        "paymentTypeKind": "string",
+        "tipsTypeId": "e8b7f419-5ea5-4f5b-b897-d30febf1d59c",
+        "sum": 0,
+        "paymentTypeId": "a681b746-24d1-4f1c-aa71-6af3f1e19567",
+        "isProcessedExternally": true,
+        "paymentAdditionalData": {
+          "type": "string"
+        },
+        "isFiscalizedExternally": true,
+        "isPrepay": true
+      }
+    ],
+    "sourceKey": "string",
+    "discountsInfo": {
+      "card": {
+        "track": "string"
+      },
+      "discounts": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "loyaltyInfo": {
+      "coupon": "string",
+      "applicableManualConditions": [
+        "497f6eca-6276-4993-bfeb-53cbbbba6f08"
+      ]
+    },
+    "orderTypeId": "c21c7b56-cdb7-4141-bc14-77df36146699",
+    "chequeAdditionalInfo": {
+      "needReceipt": true,
+      "email": "string",
+      "settlementPlace": "string",
+      "phone": "stringst"
+    },
+    "externalData": [
+      {
+        "key": "string",
+        "value": "string",
+        "isPublic": true
+      }
+    ]
+  },
+  "createOrderSettings": {
+    "servicePrint": false,
+    "transportToFrontTimeout": 0,
+    "checkStopList": false
+  }
+}

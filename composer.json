@@ -16,8 +16,8 @@
     "require": {
         "php": "^8.2",
         "symfony/dotenv": "^6.0",
-        "symfony/http-client": "^6.0"
-
+        "symfony/http-client": "^6.0",
+      "ext-curl": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "^7.0"

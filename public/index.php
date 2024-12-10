@@ -16,6 +16,7 @@ try {
 
     define("APP_ENV", $_SERVER['APP_ENV']);
     define("APP_URL", $_SERVER['APP_URL']);
+    define("IIKO_API_KEY", $_SERVER['IIKO_API_KEY']);
 
 
 

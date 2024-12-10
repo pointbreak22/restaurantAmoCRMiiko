@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Kernel\Router\Route;
 
 return [
