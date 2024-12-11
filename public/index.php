@@ -20,6 +20,7 @@ try {
 
 
 
+
     $app = new App();
     $app->run();
 } catch (Throwable $th) {
