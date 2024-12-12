@@ -1,66 +1,73 @@
 <?php
 
-namespace App\Service\IIKO;
+namespace App\Service\IIKO\Core;
 
-use RuntimeException;
+use App\Repository\IIKO\Reservation\TestRepository;
+use App\Repository\IIKO\Token\TokenRepository;
 
+/**
+ * todo: Проверить наличие сохраненного токена
+ * todo: Проверить его действительность
+ * todo: Получить и записать новый ключ
+ */
 class IikoTokenService
 {
+    private TokenRepository $tokenRepository;
 
-    private IikoConnectService $iikoConnectService;
 
     function __construct()
     {
-        $this->iikoConnectService = new IikoConnectService();
-    }
+        $this->tokenRepository = new TokenRepository();
 
-    public function getToken($isNew = false)
-    {
-        if ($isNew) {
-
-            return $this->getNewApiToken()['token'];
-        } else {
-            $tokenData = $this->getFileToken("token.json");
-            //  dd($tokenData);
-            if (empty($tokenData['token'])) {
-                return $this->getNewApiToken()['token'];
-            }
-            return $tokenData['token'];
-        }
 
     }
 
-    public function getCorrelationId()
+    /**
+     * @throws \Exception
+     */
+    public function getToken()
     {
         $tokenData = $this->getFileToken("token.json");
-
-        if (empty($tokenData['correlationId'])) {
-            return $this->getNewApiToken()['correlationId'];
+        //  dd($tokenData);
+        if (empty($tokenData['token'])) {
+            return $this->getNewApiToken()['token'];//['token']
         }
-        return $tokenData['correlationId'];
+        // dd($tokenData);
+        return $tokenData['token'];
     }
 
-
-    private function getKeyParameter(): array
+    /**
+     * @throws \Exception
+     */
+    public function getNewToken()
     {
-        return ['apiLogin' => IIKO_API_KEY];
+        return $this->getNewApiToken()['token'];
     }
 
+//    public function getCorrelationId()
+//    {
+//        $tokenData = $this->getFileToken("token.json");
+//
+//        if (empty($tokenData['correlationId'])) {
+//            return $this->getNewApiToken();//['correlationId']
+//        }
+//        return $tokenData['correlationId'];
+//    }
 
-    public function getNewApiToken()
+
+    /**
+     * @throws \Exception
+     */
+    public function getNewApiToken(): array
     {
-        $iikoConfig = (include APP_PATH . '/config/iiko/values.php')['apiSettings'];
-        $url = $iikoConfig['url'];
-        $controller = $iikoConfig['getToken'];
-        $postData = $this->getKeyParameter();
-        $result = $this->iikoConnectService->ResponseDataApi($url, $controller, $postData);
+        $result = $this->tokenRepository->get();
 
-        if (isset($result['data'])) {
-            $this->setFileToken($result['data'], 'token.json');
-            return $result['data'];
-        } else {
-            throw new RuntimeException('Ошибка при получение токена из ключа');
+        if (!isset($result['data'])) {
+            throw new \Exception('Ошибка при получение токена из ключа');
         }
+        $this->setFileToken($result['data'], 'token.json');
+        return $result['data'];
+
     }
 
     private function getFileToken($fileName): array
@@ -79,8 +86,10 @@ class IikoTokenService
         $tokenData = unserialize(json_decode($fileContent, true));
         if (empty($tokenData)) {
 
+            //dd(empty($tokenData));
             $tokenData = $this->getNewApiToken();
         }
+
 
         return $tokenData;
     }

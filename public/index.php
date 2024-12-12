@@ -18,9 +18,6 @@ try {
     define("APP_URL", $_SERVER['APP_URL']);
     define("IIKO_API_KEY", $_SERVER['IIKO_API_KEY']);
 
-
-
-
     $app = new App();
     $app->run();
 } catch (Throwable $th) {

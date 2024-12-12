@@ -5,29 +5,30 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Kernel\Controller\Controller;
-use App\Service\IIKO\IikoDataService;
-use App\Service\IIKO\IikoTokenService;
-use JetBrains\PhpStorm\NoReturn;
+use App\Service\IIKO\Core\IikoTokenService;
+use App\Service\IikoTableReservationService;
 
 class HomeController extends Controller
 {
-    // private IikoConnectService $iikoConnectService;
-
-    private IikoTokenService $tokenService;
-    private IikoDataService $dataService;
+    private IikoTableReservationService $reservationService;
 
     function __construct()
     {
-        //   $this->iikoConnectService=new IikoConnectService();
-        $this->tokenService = new IikoTokenService();
-        $this->dataService = new IikoDataService();
+        $this->reservationService = new IikoTableReservationService();
     }
 
-    #[NoReturn] public function index(): void
+    public function index(): void
     {
+        $tableReservationId = $this->reservationService->execute();
+        dd($tableReservationId);
+    }
 
-        $token = $this->dataService->getIikoOrganization();
-        dd($token);
-
+    public function testToken()
+    {
+        $tokenService = new IikoTokenService();
+        $token = $tokenService->getToken();
+        dd([
+            '$token' => $token
+        ]);
     }
 }
