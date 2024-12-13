@@ -7,7 +7,7 @@ use App\Repository\IIKO\MainRepository;
 /**
  * todo: Проверить наличие свободных банкетов
  */
-class AvailableRestaurantSectionsRepository extends MainRepository //
+class AvailableRestaurantSectionsRepository extends MainRepository
 {
     private string $method = '/api/1/reserve/available_restaurant_sections';
 

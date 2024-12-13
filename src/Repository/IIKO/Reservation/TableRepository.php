@@ -2,6 +2,7 @@
 
 namespace App\Repository\IIKO\Reservation;
 
+use App\DTO\CustomerDTO;
 use App\Repository\IIKO\MainRepository;
 
 class TableRepository extends MainRepository
@@ -9,32 +10,37 @@ class TableRepository extends MainRepository
     private string $setMethod = '/api/1/reserve/create';
 
 
+    private CustomerRepository $customerRepository;
+
     public function __construct()
     {
+        $this->customerRepository = new CustomerRepository();
         parent::__construct();
     }
 
-    public function set($organizationId, $customer, $number, $tables)
+    public function set($organizationId, $terminalGroupId, CustomerDTO $customer, $number, $tables, $dateVisit, $durationInMinutes, $customerCount)
     {
         $params = [
-            "organizationId" => $organizationId,
-            //   "terminalGroupId": "4fab19a5-203c-4bf5-94eb-f572aa8b117b",
+            "organizationId" => $organizationId,  //организация
+            "terminalGroupId" => $terminalGroupId, //группа
             //"id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
-            //  "externalNumber": "string",
-            "customer" => $customer,
+            //  "externalNumber": "string", //номер банкета
+            "customer" => $this->customerRepository->toArray($customer),
             "phone" => $number,
             //"guestsCount": 0,
             "comment" => "Данная заявка это фейк, тест Api",
-            "durationInMinutes" => 60,
-            "shouldRemind" => false,
+            "durationInMinutes" => $durationInMinutes,  //продолжительность в минутах
+            "shouldRemind" => false,  //должен напоминать
             "tableIds" => $tables,
-            "estimatedStartTime" => "2024-12-24 14:15:22.123",//date('Y-m-d H:i:s', strtotime('+1 week')),
+            "estimatedStartTime" => $dateVisit,//старт банкета,
             //  "transportToFrontTimeout": 0,
-            "guests" => ["count" => 1],
+            "guests" => ["count" => $customerCount], //информация о гостей
             // "eventType": "string",
             // "createReserveSettings": {         "transportToFrontTimeout": 0,        //    "checkStopList": false
         ];
 
+
+        //  dd($params);
         return $this->request($this->setMethod, $params);
     }
 }

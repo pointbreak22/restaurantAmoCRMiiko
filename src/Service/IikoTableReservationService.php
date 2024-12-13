@@ -3,6 +3,7 @@
 namespace App\Service;
 
 
+use App\DTO\CustomerDTO;
 use App\Repository\IIKO\Reservation\AvailableRestaurantSectionsRepository;
 use App\Repository\IIKO\Reservation\CustomerRepository;
 use App\Repository\IIKO\Reservation\OrganizationRepository;
@@ -29,8 +30,6 @@ class IikoTableReservationService
         $this->organizationRepository = new OrganizationRepository();
         $this->terminalGroupRepository = new TerminalGroupRepository();
         $this->availableRestaurantSectionsRepository = new AvailableRestaurantSectionsRepository();
-
-
         $this->customerRepository = new CustomerRepository();
         $this->tableRepository = new TableRepository();
 
@@ -40,23 +39,23 @@ class IikoTableReservationService
     /**
      * Главная функция резервации стола
      */
-    public function execute()
+    public function execute(string $dateVisit = '2024-12-20 14:15:22.123', int $durationInMinutes = 60, int $customerCount = 1, string $banketName = "Знахарь")
     {
         //////!!!!!!!!
         ///
-        $number = "+7776655444326";
+        $phone = "+7776454444326";
         $organizationsId = $this->getOrganisationsId();  //получает организацию
+
         //  dd($organizationsId);
+
         $terminalGroupId = $this->getTerminalGroupsId([$organizationsId]); // из организации получает термальную группу.
-        $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupId]); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
-
-        //dd($organizationsId);
-        $customer = $this->setCustomer($number, $organizationsId)['data'];
+        $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupId], $banketName); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
 
 
-        // $customer = $this->getCustomer($number);
-        //  dd($customer);
-        $table = $this->setTable($organizationsId, $customer, $number, $tables);
+        $customerDTO = $this->getCustomer($organizationsId, $phone);
+
+
+        $table = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $phone, [$tables[0]], $dateVisit, $durationInMinutes, $customerCount);
         dd($table);
 
 
@@ -72,52 +71,91 @@ class IikoTableReservationService
     {
 
         $response = $this->organizationRepository->get();
+        // dd($response);
         // Извлечение массива id организаций
-        return array_map(function ($organization) {
+        $result = array_map(function ($organization) {
             return $organization['id'];
         }, $response['data']['organizations'])[0];
+
+        return $result;
     }
 
     private function getTerminalGroupsId($organization): string
     {
         $response = $this->terminalGroupRepository->get($organization);
         //  dd($response);
-        return array_map(function ($terminalGroup) {
+        $result = array_map(function ($terminalGroup) {
             return $terminalGroup['id'];
         }, $response['data']['terminalGroups'][0]['items'])[0];
-
+        //     dd($result);
+        return $result;
     }
 
-    private function getAvailableRestaurantSectionsId($terminalGroup): array
+    private function getAvailableRestaurantSectionsId($terminalGroup, $banketName): array
     {
         $response = $this->availableRestaurantSectionsRepository->get($terminalGroup);
 
-        //dd($response['data']['restaurantSections'][0]['tables'][0]['id']);
+
+        $restaurantSections = $response['data']['restaurantSections'];
+
+        $targetSection = array_filter($restaurantSections, function ($section) {
+            return $section['name'] === 'Знахарь';
+        });
+        // Если нужен только первый элемент
+        $targetSection = reset($targetSection);
+
+
+        //  dd($targetSection);
         $result = array_map(function ($table) {
             return $table['id'];
-        }, $response['data']['restaurantSections'][0]['tables']);
+        }, $targetSection['tables']);
 
-        //   dd($result);
+        // dd($result);
         return $result;
 
     }
+//
+//    private function setCustomer($phone, $organizationId): array
+//    {
+//
+//        return $this->customerRepository->set($phone, $organizationId);
+//    }
 
-    private function setCustomer($number, $organizationId): array
+    private function getCustomer($organizationId, $phone): ?CustomerDTO
     {
+        $customerDTO = $this->customerRepository->get($organizationId, $phone);
 
-        return $this->customerRepository->set($number, $organizationId);
+
+        if ($customerDTO == null) {
+            $customerDTO = new CustomerDTO(
+                id: null,
+                phone: $phone,
+                cardTrack: "test123",
+                cardNumber: "test123",
+                name: "test",
+                middleName: "test",
+                surName: "test",
+                birthday: '1996-03-02 14:15:22.123',
+                email: "test@mail.com",
+                sex: 1,
+                consentStatus: 0,
+                shouldReceivePromoActionsInfo: null,
+                userData: "test",
+                organizationId: $organizationId
+            );
+            $this->customerRepository->set($customerDTO);
+            $customerDTO = $this->customerRepository->get($organizationId, $phone);
+
+        }
+
+        // If
+        return $customerDTO;
     }
 
-    private function getCustomer($number): array
+    private function setTable($organizationsId, $terminalGroupId, $customer, $phone, $tables, $dateVisit, $durationInMinutes, $customerCount): array
     {
 
-
-        return $this->customerRepository->get($number);
-    }
-
-    private function setTable($organizationsId, $customer, $number, $tables): array
-    {
-        return $this->tableRepository->set($organizationsId, $customer, $number, $tables);
+        return $this->tableRepository->set($organizationsId, $terminalGroupId, $customer, $phone, $tables, $dateVisit, $durationInMinutes, $customerCount);
     }
 
 

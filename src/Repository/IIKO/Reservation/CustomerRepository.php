@@ -2,6 +2,7 @@
 
 namespace App\Repository\IIKO\Reservation;
 
+use App\DTO\CustomerDTO;
 use App\Repository\IIKO\MainRepository;
 
 /**
@@ -20,39 +21,72 @@ class CustomerRepository extends MainRepository //available_restaurant_sections
         parent::__construct();
     }
 
-    public function get($number)
+    public function get(string $organizationId, string $value, string $type = 'phone'): ?CustomerDTO
     {
-        $params = [
-            "phone" => $number,
-            "type" => "phone",
-            "organizationId" => "7bc05553-4b68-44e8-b7bc-37be63c6d9e9"
-        ];
-
-        return $this->request($this->getMethod, $params);
+        return $this->response(result: $this->request($this->getMethod, [
+            $type => $value,
+            "type" => $type,
+            "organizationId" => $organizationId
+        ]), organizationId: $organizationId);
     }
 
-    public function set($number, $organizationId)
+    public function set(CustomerDTO $customerDTO)
     {
 
-        $params = [
-            //     "id" => "497f6eca-6276-4993-bfeb-53cbbbba6f08",
-            "phone" => $number,
-            //     "cardTrack" => "string",
-            //     "cardNumber" => "string",
-            "name" => "Test",
-            //     "middleName" => "string",
-            //     "surName" => "string",
-            //     "birthday" => "2019-08-24 14:15:22.123",
-            //      "email" => "string",
-            "sex" => 1,
-            "consentStatus" => 0,
-            //     "shouldReceivePromoActionsInfo" => true,
-            //       "referrerId" => "string",
-            //        "userData" => "string",
-            "organizationId" => $organizationId
+        $params = $this->toArray(customerDTO: $customerDTO);
+        $result = $this->request($this->setMethod, $params);
+        //  dd($result);
+        return $result;
+    }
+
+    private function response(array $result, string $organizationId): ?CustomerDTO
+    {
+        if ($result['status'] == 400) {
+            return null;
+        } else {
+            return new CustomerDTO(
+                id: $result['data']['id'],
+                phone: $result['data']['phone'],
+                cardTrack: isset($result['data']['cards'][0]) ? $result['data']['cards'][0]['track'] : "",
+                cardNumber: isset($result['data']['cards'][0]) ? $result['data']['cards'][0]['number'] : "",
+                name: $result['data']['name'],
+                middleName: $result['data']['middleName'],
+                surName: $result['data']['surname'],
+                birthday: $result['data']['birthday'] ?? date("Y-m-d H:i:s.v"),
+                email: $result['data']['email'],
+                sex: $result['data']['sex'],
+                consentStatus: $result['data']['consentStatus'],
+                shouldReceivePromoActionsInfo: $result['data']['shouldReceivePromoActionsInfo'],
+                userData: $result['data']['userData'],
+                organizationId: $organizationId
+            );
+        }
+    }
+
+    public function toArray(CustomerDTO $customerDTO): array
+    {
+
+        $data = [
+            'id' => $customerDTO->id,
+            'phone' => $customerDTO->phone,
+            'cardTrack' => $customerDTO->cardTrack,
+            'cardNumber' => $customerDTO->cardNumber,
+            'name' => $customerDTO->name,
+            'middleName' => $customerDTO->middleName,
+            'surname' => $customerDTO->surName,
+            'birthday' => $customerDTO->birthday,
+            'email' => $customerDTO->email,
+            'sex' => $customerDTO->sex,
+            'consentStatus' => $customerDTO->consentStatus,
+            'shouldReceivePromoActionsInfo' => $customerDTO->shouldReceivePromoActionsInfo,
+            'userData' => $customerDTO->userData,
+            'organizationId' => $customerDTO->organizationId
         ];
 
-        return $this->request($this->setMethod, $params);
+        // Удаляем ключи с пустыми или null значениями
+        return array_filter($data, function ($value) {
+            return $value !== null && $value !== '';
+        });
 
     }
 }
