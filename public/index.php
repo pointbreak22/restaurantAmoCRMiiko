@@ -18,6 +18,13 @@ try {
     define("APP_URL", $_SERVER['APP_URL']);
     define("IIKO_API_KEY", $_SERVER['IIKO_API_KEY']);
 
+
+    define("AMO_CLIENT_ID", $_SERVER['AMO_CLIENT_ID']);
+    define("AMO_CLIENT_SECRET", $_SERVER['AMO_CLIENT_SECRET']);
+
+    define("AMO_REDIRECT_URI", $_SERVER['AMO_REDIRECT_URI']);
+
+
     $app = new App();
     $app->run();
 } catch (Throwable $th) {

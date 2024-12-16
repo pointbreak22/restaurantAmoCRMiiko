@@ -55,6 +55,7 @@ class IikoTableReservationService
         $customerDTO = $this->getCustomer($organizationsId, $phone);
 
 
+        dd("заказ");
         $table = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $phone, [$tables[0]], $dateVisit, $durationInMinutes, $customerCount);
         dd($table);
 
