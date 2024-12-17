@@ -34,8 +34,9 @@ class AmoAuthService
 
     /**
      * Инициализация провайдера
+     * @throws RandomException
      */
-    public function initializeProvider(): void
+    public function initializeToken(): AccessToken|string|null
     {
 
         // Создаем провайдера для взаимодействия с API
@@ -58,8 +59,9 @@ class AmoAuthService
             $this->displayAccountInfo($accessToken);
         } else {
             // Если токен не действителен, начинаем процесс авторизации
-            $this->handleAuthorization();
+            $accessToken = $this->handleAuthorization();
         }
+        return $accessToken;
     }
 
     /**
@@ -72,15 +74,16 @@ class AmoAuthService
 
     /**
      * Обрабатываем авторизацию пользователя
+     * @throws RandomException
      */
-    private function handleAuthorization(): void
+    private function handleAuthorization(): string|null
     {
 
 
         // Если в запросе нет кода авторизации, показываем кнопку
         if (!isset($_GET['code'])) {
             $this->showAuthButton();
-            return;
+            return null;
         }
 
         // Проверка состояния
@@ -105,6 +108,8 @@ class AmoAuthService
             }
 
             $this->displayAccountInfo($accessToken);
+
+            return $accessToken;
 
         } catch (Exception $e) {
             die((string)$e);
@@ -152,6 +157,7 @@ class AmoAuthService
         $state = $_GET['state'] ?? null;
         $referer = $_GET['referer'] ?? null;
 
+
         // Проверка наличия необходимых параметров
         if (!$code || !$state) {
             return new Response('Invalid request: missing code or state.', 400);
@@ -164,13 +170,16 @@ class AmoAuthService
 
         // Обработка получения токена
         try {
+
             $this->processAuthorizationCode($code, $referer);
+
         } catch (Exception $e) {
+
             return new Response('Error processing authorization: ' . $e->getMessage(), 500);
         }
 
 
-        header('Location: /amoCrm');
+        header('Location: /amoCRM');
         exit;
     }
 
@@ -179,10 +188,13 @@ class AmoAuthService
      */
     private function processAuthorizationCode(string $code, ?string $referer): void
     {
+
         $provider = $this->initializeProvider2($referer);
+
 
         // Получаем токен с использованием авторизационного кода
         $accessToken = $provider->getAccessToken(new AuthorizationCode(), ['code' => $code]);
+
 
         // Сохранение токена
         $this->saveToken([
@@ -200,6 +212,7 @@ class AmoAuthService
             'clientSecret' => AMO_CLIENT_SECRET,
             'redirectUri' => AMO_REDIRECT_URI,
         ]);
+        // dd($provider);
 
         if ($referer) {
             $provider->setBaseDomain($referer);
@@ -221,8 +234,12 @@ class AmoAuthService
                     'headers' => $this->provider->getHeaders($accessToken)
                 ]);
 
+
             $parsedBody = json_decode($data->getBody()->getContents(), true);
-            printf('ID аккаунта - %s, название - %s', $parsedBody['id'], $parsedBody['name']);
+
+            //  dd($accessToken);
+
+            printf('ID аккаунта - %s, название - %s, code - %s', $parsedBody['id'], $parsedBody['name'], $accessToken->getToken());
         } catch (GuzzleException $e) {
             var_dump((string)$e);
         }

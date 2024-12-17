@@ -54,6 +54,7 @@ class IikoApiService
      */
     private function getNewToken(): string
     {
+
         return (new IikoTokenService())->getNewToken();
     }
 }
