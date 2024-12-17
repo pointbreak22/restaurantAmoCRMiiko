@@ -4,10 +4,10 @@ namespace App\Service\AmoCRM;
 
 class AmoRequestService
 {
-    private function makeRequest($method, $url, $data = [])
+    public function makeRequest($method, $url, $accessToken, $data = [])
     {
         $headers = [
-            "Authorization: Bearer {$this->accessToken}",
+            "Authorization: Bearer {$accessToken->getToken()}",
             "Content-Type: application/json",
         ];
 

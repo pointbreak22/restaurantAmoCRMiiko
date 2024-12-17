@@ -39,12 +39,14 @@ class IikoTableReservationService
     /**
      * Главная функция резервации стола
      */
-    public function execute(string $dateVisit = '2024-12-20 14:15:22.123', int $durationInMinutes = 60, int $customerCount = 1, string $banketName = "Знахарь")
+    public function execute(string $name = 'unknownName', string $email = "unknown@gmail.com", string $phone = "+72323232323", $dateVisit = '2024-12-20 14:15:22.123', int $customerCount = 1, int $durationInMinutes = 60, string $banketName = "Знахарь")
     {
         //////!!!!!!!!
         ///
-        $phone = "+7776454444326";
+
+        // return [$name, $email, $phone, $dateVisit, $durationInMinutes, $banketName];
         $organizationsId = $this->getOrganisationsId();  //получает организацию
+
 
         //  dd($organizationsId);
 
@@ -52,12 +54,12 @@ class IikoTableReservationService
         $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupId], $banketName); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
 
 
-        $customerDTO = $this->getCustomer($organizationsId, $phone);
+        $customerDTO = $this->getCustomer($organizationsId, $phone, $name, $email);
 
 
-        dd("заказ");
+        return $customerDTO;
         $table = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $phone, [$tables[0]], $dateVisit, $durationInMinutes, $customerCount);
-        dd($table);
+        return $table;
 
 
         //   dd($availableRestaurantSection);
@@ -122,30 +124,36 @@ class IikoTableReservationService
 //        return $this->customerRepository->set($phone, $organizationId);
 //    }
 
-    private function getCustomer($organizationId, $phone): ?CustomerDTO
+    private function getCustomer($organizationId, $phone, $name, $email): ?CustomerDTO
     {
         $customerDTO = $this->customerRepository->get($organizationId, $phone);
 
 
         if ($customerDTO == null) {
+
+
             $customerDTO = new CustomerDTO(
                 id: null,
                 phone: $phone,
-                cardTrack: "test123",
-                cardNumber: "test123",
-                name: "test",
-                middleName: "test",
-                surName: "test",
+                cardTrack: "",
+                cardNumber: "",
+                name: $name,
+                middleName: "",
+                surName: "",
                 birthday: '1996-03-02 14:15:22.123',
-                email: "test@mail.com",
+                email: $email,
                 sex: 1,
                 consentStatus: 0,
                 shouldReceivePromoActionsInfo: null,
                 userData: "test",
                 organizationId: $organizationId
             );
+
+
             $this->customerRepository->set($customerDTO);
             $customerDTO = $this->customerRepository->get($organizationId, $phone);
+
+            //   dd($customerDTO);
 
         }
 

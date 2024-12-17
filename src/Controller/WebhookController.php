@@ -7,51 +7,68 @@ namespace App\Controller;
 //use Illuminate\Support\Facades\Log;
 
 use App\Kernel\Controller\Controller;
+use App\Service\AmoCRM\AmoAuthService;
+use App\Service\AmoCRM\AmoNoteService;
+use App\Service\AmoCRM\SetContactService;
 use App\Service\AmoCRM\WebHookService;
+use App\Service\IikoTableReservationService;
+use Random\RandomException;
 
 class WebhookController extends Controller
 {
     private WebhookService $webhookService;
+    private AmoAuthService $amoAuthService;
+
+    private SetContactService $getContactService;
+    private IikoTableReservationService $ikoTableReservationService;
+
+    private AmoNoteService $amoNoteService;
 
     function __construct()
     {
         $this->webhookService = new WebhookService();
+        $this->amoAuthService = new AmoAuthService();
+        $this->ikoTableReservationService = new IikoTableReservationService();
+        $this->amoNoteService = new AmoNoteService();
+
+
     }
 
+    /**
+     * @throws RandomException
+     */
     public function handleWebhook()
     {
-        // Логируем данные для отладки
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result 09123----------- ");
 
-        $result = $this->webhookService->startProcessing();
-        //  echo json_encode(['status' => 'success']);
-        // dd($result);
-//        $data = json_decode($input, true);
-//
-//        $this->logToFile('webhook.log', 'Webhook received: ' . print_r($data, true));
-//
-//        // Проверка на наличие данных о лидах
-//        if (isset($data['_embedded']['leads'])) {
-//            foreach ($data['_embedded']['leads'] as $lead) {
-//                $leadId = $lead['id'] ?? 'N/A';
-//                $leadName = $lead['name'] ?? 'N/A';
-//                $this->logToFile('webhook_leads.log', "Lead ID: $leadId, Name: $leadName");
-//            }
-//        } else {
-//            $this->logToFile('webhook.log', 'No leads data found in the request.');
-//        }
-//
-//        // Возвращаем ответ
-//        header('Content-Type: application/json');
-//        http_response_code(200);
-//        echo json_encode(['status' => 'success']);
+        $hookData = $this->webhookService->startProcessing();
+        $accessToken = $this->amoAuthService->initializeToken();
+        $this->getContactService = new SetContactService($accessToken);
+        $hookData = $this->getContactService->setContactsByLead($hookData);
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result 09123----------- " . print_r($hookData, true));
 
-        //dd($data);
+        // Создаем объект DateTime из timestamp
+        $timestamp = $hookData['dataReserveField'];
+
+
+        $date = \DateTime::createFromFormat('U.u', $timestamp . '.0');
+
+        // Форматируем в нужный вид
+        $formattedDate = $date->format('Y-m-d H:i:s.v');
+        // $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result2 ----------- " . print_r($formattedDate, true));
+        $name = $hookData['name'];
+        $email = $hookData['Email'];
+        $phone = $hookData['Phone'];
+        $nameReserve = $hookData['nameReserveField'];
+        $countPeople = $hookData['countPeopleField'];
+        $timeMinutes = $hookData['timeField'];
+        $result = $this->ikoTableReservationService->execute($name, $email, $phone, $formattedDate, $countPeople, $timeMinutes, $nameReserve);
+
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result22 ----------- " . print_r($result, true));
+        // $resultNode = $this->amoNoteService->addNoteToLead($hookData['leadId'], json_encode($result));
+
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result22 ----------- " . print_r($result, true));
+
 
     }
-
-//    private function logToFile(string $filename, string $message): void
-//    {
-//        $logMessage = "[" . date('Y-m-d H:i:s') . "] " . $message . PHP_EOL;
-//        file_put_contents(APP_PATH . "/var/logs/$filename", $logMessage, FILE_APPEND);
-//    }
 }
