@@ -10,6 +10,7 @@ return [
             'createReserveField' => '585681',
             'phoneField' => '581971',
             'emailField' => '581973',
+            'createdReserveFieldInfo' => '590739',
 
         ],
 

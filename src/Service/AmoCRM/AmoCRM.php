@@ -14,7 +14,7 @@ class AmoCRM extends AbstractProvider
     /**
      * @var string
      */
-    public $baseDomain = 'zbrozhek13.amocrm.ru';
+    public $baseDomain = BASE_DOMAIN;
 
     /**
      * @var string

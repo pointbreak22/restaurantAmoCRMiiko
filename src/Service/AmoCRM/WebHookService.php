@@ -26,6 +26,7 @@ class WebHookService
         // Логируем данные для отладки
 
         $data = $_POST;
+        //    return $data;
         // Проверка на наличие данных о лидах
         if (isset($data["leads"]["update"][0]['custom_fields'])) {
             try {
@@ -86,11 +87,13 @@ class WebHookService
 
         $countPeople = $this->getCountPeople($data, $amoFieldsConfig['countPeopleField']);
         $nameReserve = $this->getNameReserve($data, $amoFieldsConfig['nameReserveField']);
+        $createdReserveFieldInfo = $this->getCreatedReserveFieldInfo($data, $amoFieldsConfig['createdReserveFieldInfo']);
         $hookDataDTO->setDataReserve($datetime->format('Y-m-d H:i:s.v'));
         $hookDataDTO->setTimeReserve($timeDifference);
         $hookDataDTO->setCountPeople($countPeople);
         $hookDataDTO->setNameReserve($nameReserve);
         $hookDataDTO->setCreatedReserve($createdReserve);
+        $hookDataDTO->setCreatedReserveInfo($createdReserveFieldInfo);
 
     }
 
@@ -161,6 +164,18 @@ class WebHookService
         }
         return $nameReserve;
 
+    }
+
+    private function getCreatedReserveFieldInfo($data, mixed $createdReserveFieldInfo)
+    {
+        $createdReserveInfo = "";
+        foreach ($data as $item) {
+            if ($item['id'] == $createdReserveFieldInfo) {
+                $createdReserveInfo = $item['values'][0]['value'];  // Извлекаем значение
+                break;  // Прерываем цикл, так как мы нашли нужный элемент
+            }
+        }
+        return $createdReserveInfo;
     }
 
 

@@ -17,7 +17,8 @@ class AmoRequestService
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 
-        if ($method === 'POST' && !empty($data)) {
+
+        if (!empty($data)) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         }
 

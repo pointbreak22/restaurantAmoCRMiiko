@@ -40,9 +40,40 @@ class WebhookController extends Controller
     {
 
         $hookDataDTO = $this->webhookService->startProcessing();
-        $accessToken = $this->amoAuthService->initializeToken();
+
+        if ($hookDataDTO->isCreatedReserveInfo()) {
+            http_response_code(403);
+
+            echo json_encode([
+                'error' => 'Forbidden',
+                'message' => 'You do not send reserve.'
+            ]);
+            return;
+
+        }
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result2 ----------- " . print_r($hookDataDTO, true));
+
+
+        $accessToken = $this->amoAuthService->initializeToken(true);
+
+        if (!isset($accessToken)) {
+            //    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Вы не авторизованны на сервере, чтоб авторизоваться перейдите по ссылке: " . HOST_SERVER);
+            //  $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result2 ----------- " . print_r($resultNode, true));
+            http_response_code(401);
+            echo json_encode([
+                'error' => 'Forbidden',
+                'message' => 'You do not have the necessary permissions to access this resource.'
+            ]);
+
+            return;
+        }
+
         $this->getContactService = new SetContactService($accessToken);
         $result = $this->getContactService->setContactsByLead($hookDataDTO);
+//        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
+//        return;
+
+     
         if ($result !== true) {
             $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
             return;

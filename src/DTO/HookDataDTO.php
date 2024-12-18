@@ -11,6 +11,18 @@ class HookDataDTO
     private string $contactEmail;
     private string $contactPhone;
 
+    private bool $createdReserveInfo = false;
+
+    public function isCreatedReserveInfo(): bool
+    {
+        return $this->createdReserveInfo;
+    }
+
+    public function setCreatedReserveInfo(bool $createdReserveInfo): void
+    {
+        $this->createdReserveInfo = $createdReserveInfo;
+    }
+
     public function isCreatedReserve(): bool
     {
         return $this->createdReserve;

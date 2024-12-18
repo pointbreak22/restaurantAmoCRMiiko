@@ -36,14 +36,16 @@ class AmoAuthService
      * Инициализация провайдера
      * @throws RandomException
      */
-    public function initializeToken(): AccessToken|string|null
+    public function initializeToken(bool $useWebHook = false): AccessToken|string|null
     {
 
         // Создаем провайдера для взаимодействия с API
         $this->provider = new AmoCRM([
             'clientId' => AMO_CLIENT_ID,
             'clientSecret' => AMO_CLIENT_SECRET,
-            'redirectUri' => AMO_REDIRECT_URI,
+            //  'redirectUri' =>    AMO_REDIRECT_URI,
+            'redirectUri' => "https://" . HOST_SERVER . "/auth/callback"
+
         ]);
 
         if (isset($_GET['referer'])) {
@@ -59,7 +61,11 @@ class AmoAuthService
             $this->displayAccountInfo($accessToken);
         } else {
             // Если токен не действителен, начинаем процесс авторизации
-            $accessToken = $this->handleAuthorization();
+            if ($useWebHook) {
+                return null;
+            } else {
+                $accessToken = $this->handleAuthorization();
+            }
         }
         return $accessToken;
     }
@@ -179,7 +185,7 @@ class AmoAuthService
         }
 
 
-        header('Location: /amoCRM');
+        header('Location: /');
         exit;
     }
 
@@ -210,7 +216,8 @@ class AmoAuthService
         $provider = new AmoCRM([
             'clientId' => AMO_CLIENT_ID,
             'clientSecret' => AMO_CLIENT_SECRET,
-            'redirectUri' => AMO_REDIRECT_URI,
+            //   'redirectUri' => AMO_REDIRECT_URI,
+            'redirectUri' => "https://" . HOST_SERVER . "/auth/callback"
         ]);
         // dd($provider);
 
@@ -239,7 +246,7 @@ class AmoAuthService
 
             //  dd($accessToken);
 
-            printf('ID аккаунта - %s, название - %s, code - %s', $parsedBody['id'], $parsedBody['name'], $accessToken->getToken());
+            printf('Вы успешно авторизированны, ID аккаунта - %s, название - %s', $parsedBody['id'], $parsedBody['name']);
         } catch (GuzzleException $e) {
             var_dump((string)$e);
         }

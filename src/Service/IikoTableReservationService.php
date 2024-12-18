@@ -52,7 +52,7 @@ class IikoTableReservationService
 
         $customerDTO = $this->getCustomer($organizationsId, $hookDataDTO->getContactPhone(), $hookDataDTO->getContactName(), $hookDataDTO->getContactEmail());
 
-
+        //return $customerDTO;
         $table = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $hookDataDTO->getContactPhone(), [$tables[0]], $hookDataDTO->getDataReserve(), $hookDataDTO->getTimeReserve(), $hookDataDTO->getCountPeople());
         return $table;
 
