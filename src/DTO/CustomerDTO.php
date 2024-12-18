@@ -19,7 +19,7 @@ readonly class CustomerDTO
         public ?bool   $shouldReceivePromoActionsInfo,//": true, //+
         //   public string    $referrerId,//": "string", //-
         public ?string $userData,//": "string", //+
-        public string  $organizationId,
+        public string  $organizationId,//
 
 
     )
