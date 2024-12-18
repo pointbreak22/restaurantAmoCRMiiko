@@ -57,7 +57,7 @@ class IikoTableReservationService
         $customerDTO = $this->getCustomer($organizationsId, $phone, $name, $email);
 
 
-        return $customerDTO;
+        // return $customerDTO;
         $table = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $phone, [$tables[0]], $dateVisit, $durationInMinutes, $customerCount);
         return $table;
 

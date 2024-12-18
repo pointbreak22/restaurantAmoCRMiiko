@@ -26,6 +26,8 @@ class AmoNoteService
      */
     public function addNoteToLead(int $leadId, string $text)
     {
+
+        //   return [$leadId, $text];
         $url = "{$this->baseUrl}/api/v4/leads/notes";
 
         // Формирование данных примечания

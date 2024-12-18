@@ -31,6 +31,7 @@ class HomeController extends Controller
 
     public function testToken()
     {
+        // dd("token");
         $tokenService = new IikoTokenService();
         $token = $tokenService->getToken();
         dd([
@@ -43,6 +44,7 @@ class HomeController extends Controller
      */
     public function testAmoCrm(): void
     {
+        //dd("xcxcx");
 //        define('AMO_WEBHOOK_FILE', APP_PATH . '/var/webhook/webhook.log');
 //        dd(AMO_WEBHOOK_FILE);
 

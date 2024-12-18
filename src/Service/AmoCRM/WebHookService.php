@@ -55,7 +55,7 @@ class WebHookService
             mkdir(dirname($filename), 0777, true); // Создаем директорию с правами 0777
         }
 
-        file_put_contents($filename, $logMessage, FILE_APPEND);
+        file_put_contents($filename, $logMessage, FILE_APPEND | LOCK_EX);
 
 
     }

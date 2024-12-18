@@ -29,7 +29,6 @@ class WebhookController extends Controller
         $this->webhookService = new WebhookService();
         $this->amoAuthService = new AmoAuthService();
         $this->ikoTableReservationService = new IikoTableReservationService();
-        $this->amoNoteService = new AmoNoteService();
 
 
     }
@@ -45,7 +44,7 @@ class WebhookController extends Controller
         $accessToken = $this->amoAuthService->initializeToken();
         $this->getContactService = new SetContactService($accessToken);
         $hookData = $this->getContactService->setContactsByLead($hookData);
-        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result 09123----------- " . print_r($hookData, true));
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result 995544----------- " . print_r($hookData, true));
 
         // Создаем объект DateTime из timestamp
         $timestamp = $hookData['dataReserveField'];
@@ -64,10 +63,12 @@ class WebhookController extends Controller
         $timeMinutes = $hookData['timeField'];
         $result = $this->ikoTableReservationService->execute($name, $email, $phone, $formattedDate, $countPeople, $timeMinutes, $nameReserve);
 
-        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result22 ----------- " . print_r($result, true));
-        // $resultNode = $this->amoNoteService->addNoteToLead($hookData['leadId'], json_encode($result));
+        //$this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result22 ----------- " . print_r($result, true));
+        $this->amoNoteService = new AmoNoteService($accessToken);
 
-        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result22 ----------- " . print_r($result, true));
+        $resultNode = $this->amoNoteService->addNoteToLead($hookData['leadId'], json_encode($result));
+
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result2 ----------- " . print_r($resultNode, true));
 
 
     }
