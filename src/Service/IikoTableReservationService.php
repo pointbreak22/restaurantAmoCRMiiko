@@ -4,6 +4,7 @@ namespace App\Service;
 
 
 use App\DTO\CustomerDTO;
+use App\DTO\HookDataDTO;
 use App\Repository\IIKO\Reservation\AvailableRestaurantSectionsRepository;
 use App\Repository\IIKO\Reservation\CustomerRepository;
 use App\Repository\IIKO\Reservation\OrganizationRepository;
@@ -32,18 +33,14 @@ class IikoTableReservationService
         $this->availableRestaurantSectionsRepository = new AvailableRestaurantSectionsRepository();
         $this->customerRepository = new CustomerRepository();
         $this->tableRepository = new TableRepository();
-
-
     }
 
     /**
      * Главная функция резервации стола
      */
-    public function execute(string $name = 'unknownName', string $email = "unknown@gmail.com", string $phone = "+72323232323", $dateVisit = '2024-12-20 14:15:22.123', int $customerCount = 1, int $durationInMinutes = 60, string $banketName = "Знахарь")
+    public function execute(HookDataDTO $hookDataDTO)
     {
         //////!!!!!!!!
-        ///
-
         // return [$name, $email, $phone, $dateVisit, $durationInMinutes, $banketName];
         $organizationsId = $this->getOrganisationsId();  //получает организацию
 
@@ -51,14 +48,12 @@ class IikoTableReservationService
         //  dd($organizationsId);
 
         $terminalGroupId = $this->getTerminalGroupsId([$organizationsId]); // из организации получает термальную группу.
-        $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupId], $banketName); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
+        $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupId], $hookDataDTO->getNameReserve()); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
+
+        $customerDTO = $this->getCustomer($organizationsId, $hookDataDTO->getContactPhone(), $hookDataDTO->getContactName(), $hookDataDTO->getContactEmail());
 
 
-        $customerDTO = $this->getCustomer($organizationsId, $phone, $name, $email);
-
-
-        // return $customerDTO;
-        $table = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $phone, [$tables[0]], $dateVisit, $durationInMinutes, $customerCount);
+        $table = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $hookDataDTO->getContactPhone(), [$tables[0]], $hookDataDTO->getDataReserve(), $hookDataDTO->getTimeReserve(), $hookDataDTO->getCountPeople());
         return $table;
 
 
@@ -98,7 +93,6 @@ class IikoTableReservationService
     {
         $response = $this->availableRestaurantSectionsRepository->get($terminalGroup);
 
-
         $restaurantSections = $response['data']['restaurantSections'];
 
         $targetSection = array_filter($restaurantSections, function ($section) {
@@ -117,12 +111,6 @@ class IikoTableReservationService
         return $result;
 
     }
-//
-//    private function setCustomer($phone, $organizationId): array
-//    {
-//
-//        return $this->customerRepository->set($phone, $organizationId);
-//    }
 
     private function getCustomer($organizationId, $phone, $name, $email): ?CustomerDTO
     {
@@ -166,100 +154,5 @@ class IikoTableReservationService
 
         return $this->tableRepository->set($organizationsId, $terminalGroupId, $customer, $phone, $tables, $dateVisit, $durationInMinutes, $customerCount);
     }
-
-
-//    public function getIikoAvailableRestaurant(): array
-//    {
-//        $iikoConfig = (include APP_PATH . '/config/iiko/values.php')['apiSettings'];
-//        $url = $iikoConfig['url'];
-//        $controller = $iikoConfig['getAvailableRestaurantSections'];
-//        $postData = $this->getAvailableRestaurantSectionsParameters();
-//        return $this->setResponseDataApi($url, $controller, $postData);
-//    }
-//
-//    private function getAvailableRestaurantSectionsParameters(): array
-//    {
-//        return ['terminalGroupIds' => ["443707ed-5429-e7bd-0187-7433c8ff0064"],
-//            "returnSchema" => true,
-//            "revision" => 0];
-//    }
-//
-//    public function getIikoRestaurantSectionsWorkload(): array
-//    {
-//        $iikoConfig = (include APP_PATH . '/config/iiko/values.php')['apiSettings'];
-//        $url = $iikoConfig['url'];
-//        $controller = $iikoConfig['getRestaurantSectionsWorkload'];
-//        $postData = $this->getRestaurantSectionsWorkloadParameters();
-//
-//        return $this->setResponseDataApi($url, $controller, $postData);
-//    }
-//
-//    private function getRestaurantSectionsWorkloadParameters(): array
-//    {
-//
-//        return ['restaurantSectionIds' => ["497f6eca-6276-4993-bfeb-53cbbbba6f08"],
-//            "dateFrom" => date('Y-m-d 00:00:00'),
-//            "dateTo" => date('Y-m-d 23:59:59')
-//        ];
-//    }
-//
-//    public function getIikoTerminalGroups(): array
-//    {
-//        $iikoConfig = (include APP_PATH . '/config/iiko/values.php')['apiSettings'];
-//        $url = $iikoConfig['url'];
-//        $controller = $iikoConfig['getTerminalGroups'];
-//        $postData = $this->getTerminalGroupsParameters();
-//
-//        return $this->setResponseDataApi($url, $controller, $postData);
-//    }
-//
-//    private function getTerminalGroupsParameters(): array
-//    {
-//
-//        return ['restaurantSectionIds' => ["497f6eca-6276-4993-bfeb-53cbbbba6f08"],
-//            "dateFrom" => date('Y-m-d 00:00:00'),
-//            "dateTo" => date('Y-m-d 23:59:59')
-//        ];
-//    }
-//
-//
-//    public function getIikoOrganization(): array
-//    {
-//        return [];
-//
-//        $iikoConfig = (include APP_PATH . '/config/iiko/values.php')['apiSettings'];
-//        $url = $iikoConfig['url'];
-//        $controller = $iikoConfig['getOrganizations'];
-//        $postData = $this->getOrganizationParameters();
-//        return $this->setResponseDataApi($url, $controller, $postData);
-//    }
-//
-//    private function getOrganizationParameters(): array
-//    {
-//        $correlationId = $this->tokenService->getCorrelationId();
-//        //    dd($correlationId);
-//        return ['organizationIds' => ["497f6eca-6276-4993-bfeb-53cbbbba6f08"],
-//            "returnAdditionalInfo" => true,
-//            "includeDisabled" => true,
-//            "returnExternalData" => ["string"]];
-//    }
-//
-//    private function setResponseDataApi($url, $controller, $postData): array
-//    {
-//        $token = $this->tokenService->getToken();
-//        $result = $this->iikoConnectService->ResponseDataApi($url, $controller, $postData, $token);
-//        if (!isset($result['status'])) {
-//            throw new RuntimeException('Данные отсутствуют.');
-//        }
-//        if ($result['status'] >= 400 && $result['status'] < 500) {
-//            $token = $this->tokenService->getToken(true);
-//            $result = $this->iikoConnectService->ResponseDataApi($url, $controller, $postData, $token);
-//        } elseif ($result['status'] >= 500) {
-//            // Ошибки сервера
-//            throw new RuntimeException("Server Error: HTTP Code " . $result['status']);
-//        }
-//        return $result;
-//    }
-
 
 }

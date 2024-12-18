@@ -3,9 +3,9 @@
 return [
     'dev' => [
         'custom_fields' => [
-            'dataReserveField' => '582179',
+            'dataReserveField' => '589605',
             'countPeopleField' => '582209',
-            'timeField' => '582265',
+            'timeReserveField' => '582265',
             'nameReserveField' => '582267',
             'createReserveField' => '585681',
             'phoneField' => '581971',

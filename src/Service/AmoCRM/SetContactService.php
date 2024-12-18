@@ -2,6 +2,7 @@
 
 namespace App\Service\AmoCRM;
 
+use App\DTO\HookDataDTO;
 use League\OAuth2\Client\Token\AccessToken;
 
 class SetContactService
@@ -23,11 +24,11 @@ class SetContactService
     /**
      * Получение контактов, привязанных к сделке
      */
-    public function setContactsByLead($data)
+    public function setContactsByLead(HookDataDTO $hookDataDTO)
     {
 
         // Получаем сделку по ID
-        $lead = $this->getLeadById($data['leadId']);
+        $lead = $this->getLeadById($hookDataDTO->getLeadId());
 
 
         // Проверяем, есть ли контакты в сделке
@@ -37,8 +38,8 @@ class SetContactService
             $contactInfo = $this->getContactsByIds($contactId); // Получаем подробности о контактах
             if (isset($contactInfo['custom_fields_values']) && count($contactInfo['custom_fields_values']) > 0) {
 
-                $data = $this->setContactsByDataLead($data, $contactInfo);
-                return $data;
+                return $this->setContactsByDataLead($hookDataDTO, $contactInfo);
+
             } else {
 
                 return "No found in contacts phone or email.";
@@ -73,25 +74,26 @@ class SetContactService
     }
 
 
-    private function setContactsByDataLead($data, $contactInfo)
+    private function setContactsByDataLead(HookDataDTO $hookDataDTO, $contactInfo)
     {
-        $data['name'] = $contactInfo['name'];
-        foreach ($contactInfo['custom_fields_values'] as $item) {
-            //   $hookData[$item['id']] = $item['values'];
+        try {
+            $hookDataDTO->setContactName($contactInfo['name']);
+            foreach ($contactInfo['custom_fields_values'] as $item) {
+                //   $hookData[$item['id']] = $item['values'];
 
-            if ($item['field_code'] == 'EMAIL') {
-                $data['Email'] = $item['values'][0]['value'];  // Извлекаем значение
-                //     continue;  // Прерываем цикл, так как мы нашли нужный элемент
-            }
-            if ($item['field_code'] == 'PHONE') {
-                $data['Phone'] = $item['values'][0]['value'];  // Извлекаем значение
-                //   continue;  // Прерываем цикл, так как мы нашли нужный элемент
-            }
+                if ($item['field_code'] == 'EMAIL') {
+                    $hookDataDTO->setContactEmail($item['values'][0]['value']);
 
+                }
+                if ($item['field_code'] == 'PHONE') {
+                    $hookDataDTO->setContactPhone($item['values'][0]['value']);
+
+                }
+            }
+            return true;
+        } catch (\Exception $e) {
+            return $e->getMessage();
         }
-
-
-        return $data;
 
 
     }
