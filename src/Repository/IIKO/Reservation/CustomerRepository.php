@@ -35,7 +35,7 @@ class CustomerRepository extends MainRepository //available_restaurant_sections
 
         $params = $this->toArray(customerDTO: $customerDTO);
         $result = $this->request($this->setMethod, $params);
-        //  dd($result);
+        // dd($result);
         return $result;
     }
 

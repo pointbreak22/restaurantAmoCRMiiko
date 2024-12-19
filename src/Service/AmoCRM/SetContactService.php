@@ -30,6 +30,7 @@ class SetContactService
         // Получаем сделку по ID
         $leadResponse = $this->getLeadById($hookDataDTO->getLeadId());
 
+
         if ($leadResponse['httpCode'] >= 400) {
             return $leadResponse;
 
@@ -43,6 +44,7 @@ class SetContactService
             $contactId = $leadResponse['response']['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
 
             $contactResponse = $this->getContactsByIds($contactId); // Получаем подробности о контактах
+
             if ($contactResponse['httpCode'] >= 400) {
                 return $contactResponse;
 
@@ -50,16 +52,17 @@ class SetContactService
 
             if (isset($contactResponse['response']['custom_fields_values']) && count($contactResponse['response']['custom_fields_values']) > 0) {
 
-                return $this->setContactsByDataLead($hookDataDTO, $contactResponse['response']);
+                return ['httpCode' => 200, 'response' => $this->setContactsByDataLead($hookDataDTO, $contactResponse['response'])];
 
             } else {
+                return ['httpCode' => 400, 'response' => "No found in contacts phone or email."];
 
-                return "No found in contacts phone or email.";
             }
 
 
         } else {
-            return "No contacts found for this lead.";
+            return ['httpCode' => 400, 'response' => "No contacts found for this lead."];
+
         }
     }
 

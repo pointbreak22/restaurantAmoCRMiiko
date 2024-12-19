@@ -38,7 +38,7 @@ class IikoTableReservationService
     /**
      * Главная функция резервации стола
      */
-    public function execute(HookDataDTO $hookDataDTO)
+    public function execute(HookDataDTO $hookDataDTO): array
     {
         //////!!!!!!!!
         // return [$name, $email, $phone, $dateVisit, $durationInMinutes, $banketName];
@@ -140,7 +140,7 @@ class IikoTableReservationService
 
             $this->customerRepository->set($customerDTO);
             $customerDTO = $this->customerRepository->get($organizationId, $phone);
-
+            dd($customerDTO);
             //   dd($customerDTO);
 
         }

@@ -11,7 +11,7 @@ class HookDataDTO
     private string $contactEmail;
     private string $contactPhone;
     private string $dataReserve = "";
-    private ?string $idReserve = null;
+    private string $idReserve = "";
 
     public function getIdReserve(): string
     {

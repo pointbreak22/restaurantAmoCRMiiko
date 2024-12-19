@@ -21,7 +21,7 @@ class WebHookService
     }
 
 
-    public function startProcessing(): HookDataDTO
+    public function startProcessing()
     {
         // Логируем данные для отладки
 
@@ -155,7 +155,7 @@ class WebHookService
         $timeReserve = "";
         foreach ($data as $item) {
             if ($item['id'] == $timeReserveField) {
-                $timeReserve = $item['values']['value'];  // Извлекаем значение
+                $timeReserve = $item['values'][0]['value'];  // Извлекаем значение
                 break;  // Прерываем цикл, так как мы нашли нужный элемент
             }
 
@@ -169,7 +169,7 @@ class WebHookService
         $nameReserve = "";
         foreach ($data as $item) {
             if ($item['id'] == $nameReserveField) {
-                $nameReserve = $item['values']['value'];  // Извлекаем значение
+                $nameReserve = $item['values'][0]['value'];  // Извлекаем значение
                 break;  // Прерываем цикл, так как мы нашли нужный элемент
             }
         }
