@@ -10,18 +10,19 @@ class HookDataDTO
     private string $contactName;
     private string $contactEmail;
     private string $contactPhone;
+    private string $dataReserve = "";
+    private ?string $idReserve;
 
-    private bool $createdReserveInfo = false;
-
-    public function isCreatedReserveInfo(): bool
+    public function getIdReserve(): string
     {
-        return $this->createdReserveInfo;
+        return $this->idReserve;
     }
 
-    public function setCreatedReserveInfo(bool $createdReserveInfo): void
+    public function setIdReserve(string $idReserve): void
     {
-        $this->createdReserveInfo = $createdReserveInfo;
+        $this->idReserve = $idReserve;
     }
+
 
     public function isCreatedReserve(): bool
     {
@@ -33,10 +34,10 @@ class HookDataDTO
         $this->createdReserve = $createdReserve;
     }
 
-    private string $nameReserve;
-    private string $countPeople;
+    private ?string $nameReserve;
+    private string $countPeople = "0";
 
-    private string $timeReserve;
+    private ?string $timeReserve;
 
     public function getLeadId(): string
     {
@@ -117,8 +118,6 @@ class HookDataDTO
     {
         $this->dataReserve = $dataReserve;
     }
-
-    private string $dataReserve;
 
 
 }

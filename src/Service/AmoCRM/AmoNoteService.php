@@ -26,7 +26,7 @@ class AmoNoteService
      */
     public function addNoteToLead(int $leadId, string $text): mixed
     {
-        $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
+//        $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
 
 
         //   return [$leadId, $text];
@@ -46,20 +46,40 @@ class AmoNoteService
 
 
         // Отправка POST-запроса
-        $response1 = $this->amoRequestService->makeRequest('POST', $url, $this->accessToken, $data);
+        //
+        return $this->amoRequestService->makeRequest('POST', $url, $this->accessToken, $data);
+    }
+
+    public function editReserveInfo(int $leadId, string $value): mixed
+    {
+        $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
+
         $url2 = "{$this->baseUrl}/api/v4/leads/{$leadId}";
         $data2 = [
             'custom_fields_values' => [
                 [
-                    'field_id' => $amoFieldsConfig['createdReserveFieldInfo'],
+                    'field_id' => (int)$amoFieldsConfig['idReserveField'],
                     'values' => [
-                        0 => ['value' => 1]
+                        ['value' => (string)$value] // Установка текстового значения
+
                     ]
                 ]
             ]
         ];
-        $response2 = $this->amoRequestService->makeRequest('PATCH', $url2, $this->accessToken, $data2);
+        // return $data2;
+        return $this->amoRequestService->makeRequest('PATCH', $url2, $this->accessToken, $data2);
 
-        return [$response1, $response2];
+
     }
+
+    public function getleads()
+    {
+        $url = "{$this->baseUrl}/api/v4/leads/metadata";
+        $response = $this->amoRequestService->makeRequest('GET', $url, $this->accessToken);
+
+        return $response;
+
+    }
+
+
 }

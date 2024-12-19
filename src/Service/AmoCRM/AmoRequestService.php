@@ -19,11 +19,16 @@ class AmoRequestService
 
 
         if (!empty($data)) {
+
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         }
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+//        if (curl_errno($ch)) {
+//            return "cURL Error: " . curl_error($ch);
+//        }
 
         if ($httpCode >= 400) {
             return "Error: {$httpCode}, Response: " . $response;

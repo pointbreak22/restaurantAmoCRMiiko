@@ -29,7 +29,7 @@ class SetContactService
 
         // Получаем сделку по ID
         $lead = $this->getLeadById($hookDataDTO->getLeadId());
-        //return $lead;
+        // return $lead;  //получить список полей в сделке
 
         // Проверяем, есть ли контакты в сделке
         if (isset($lead['_embedded']['contacts']) && count($lead['_embedded']['contacts']) > 0) {

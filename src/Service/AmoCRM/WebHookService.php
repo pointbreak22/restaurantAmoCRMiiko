@@ -21,12 +21,13 @@ class WebHookService
     }
 
 
-    public function startProcessing(): HookDataDTO
+    public function startProcessing()
     {
         // Логируем данные для отладки
 
+        //  $data = json_decode(file_get_contents('php://input'), true);
         $data = $_POST;
-        //    return $data;
+        // return $data;
         // Проверка на наличие данных о лидах
         if (isset($data["leads"]["update"][0]['custom_fields'])) {
             try {
@@ -36,6 +37,17 @@ class WebHookService
             } catch (Exception $e) {
                 $this->logToFile(AMO_WEBHOOK_FILE, $e->getMessage());
             }
+
+
+        } elseif (isset($data["leads"]["add"][0]['custom_fields'])) {
+            try {
+                $this->setHookValues($data["leads"]["add"][0]['custom_fields'], $this->hookDataDTO);
+                $this->hookDataDTO->setLeadId($data["leads"]["add"][0]['id']);
+
+            } catch (Exception $e) {
+                $this->logToFile(AMO_WEBHOOK_FILE, $e->getMessage());
+            }
+
 
         } else {
             $this->logToFile(AMO_WEBHOOK_FILE, 'No leads data found in the request.c5555555');
@@ -87,13 +99,13 @@ class WebHookService
 
         $countPeople = $this->getCountPeople($data, $amoFieldsConfig['countPeopleField']);
         $nameReserve = $this->getNameReserve($data, $amoFieldsConfig['nameReserveField']);
-        $createdReserveFieldInfo = $this->getCreatedReserveFieldInfo($data, $amoFieldsConfig['createdReserveFieldInfo']);
+        $IdReserve = $this->getIdReserve($data, $amoFieldsConfig['idReserveField']);
         $hookDataDTO->setDataReserve($datetime->format('Y-m-d H:i:s.v'));
         $hookDataDTO->setTimeReserve($timeDifference);
         $hookDataDTO->setCountPeople($countPeople);
         $hookDataDTO->setNameReserve($nameReserve);
         $hookDataDTO->setCreatedReserve($createdReserve);
-        $hookDataDTO->setCreatedReserveInfo($createdReserveFieldInfo);
+        $hookDataDTO->setIdReserve($IdReserve);
 
     }
 
@@ -166,17 +178,38 @@ class WebHookService
 
     }
 
-    private function getCreatedReserveFieldInfo($data, mixed $createdReserveFieldInfo)
+
+    private function getIdReserve($data, mixed $idReserveField)
     {
-        $createdReserveInfo = "";
+        $idReserve = "";
         foreach ($data as $item) {
-            if ($item['id'] == $createdReserveFieldInfo) {
-                $createdReserveInfo = $item['values'][0]['value'];  // Извлекаем значение
+            if ($item['id'] == $idReserveField) {
+                $idReserve = $item['values'][0]['value'];  // Извлекаем значение
                 break;  // Прерываем цикл, так как мы нашли нужный элемент
             }
         }
-        return $createdReserveInfo;
+        return $idReserve;
+
     }
-
-
 }
+
+
+
+//[5] => Array
+//(
+//    [field_id] => 591687
+//                    [field_name] => Создан резерв
+//[field_code] =>
+//                    [field_type] => radiobutton
+//[values] => Array
+//(
+//    [0] => Array
+//    (
+//        [value] => Да
+//        [enum_id] => 934359
+//                                    [enum_code] =>
+//                                )
+//
+//                        )
+//
+//                )
