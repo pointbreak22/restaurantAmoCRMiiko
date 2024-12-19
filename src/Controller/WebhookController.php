@@ -42,6 +42,36 @@ class WebhookController extends Controller
 
         try {
 
+//            $webhookData = json_decode(file_get_contents('php://input'), true);
+//            //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод сообщения: " . print_r($webhookData, true));
+//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод сообщения: " . $webhookData);
+//
+
+//            return;
+// Проверяем, есть ли изменения в сделках
+//            if (isset($webhookData['leads']['update'])) {
+//                foreach ($webhookData['leads']['update'] as $lead) {
+//                    // Проверяем custom_fields на наличие изменения поля "ID резервации"
+//                    if (isset($lead['custom_fields'])) {
+//                        foreach ($lead['custom_fields'] as $field) {
+//                            if ($field['id'] === 591981) { // ID поля "ID резервации"
+//                                // Проверка, если поле изменено
+//                                $oldValue = $field['values'][0]['value'] ?? null;
+//                                $newValue = $field['values'][1]['value'] ?? null;
+//
+//                                // Если поле изменилось — игнорируем дальнейшую обработку
+//                                if ($oldValue !== $newValue && $oldValue !== null && $newValue !== null) {
+//                                    // Логируем для диагностики
+//                                    file_put_contents('log.txt', "Изменение поля 'ID резервации' было игнорировано.\n", FILE_APPEND);
+//                                    return; // Завершаем выполнение
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+
+
             if ($_POST['leads']['update'][0]['modified_user_id'] == 0) {
                 // Игнорируем автоматический вебхук
                 return;
@@ -110,8 +140,8 @@ class WebhookController extends Controller
         } catch (Exception $ex) {
             $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($ex, true));
         }
-//        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($_POST['leads']['update'][0]['modified_user_id'], true));
-//        //  return;
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод сообщения: " . print_r($_POST, true));
+        // return;
 
         $hookDataDTO = $this->webhookService->startProcessing();
 //
@@ -139,8 +169,8 @@ class WebhookController extends Controller
 
             return;
         }
-        //       $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Обычный вывод: " . print_r($accessToken, true));
-
+//        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Обычный вывод: " . print_r($accessToken, true));
+//        return;
 
         $this->amoNoteService = new AmoNoteService($accessToken);
 
@@ -164,23 +194,27 @@ class WebhookController extends Controller
 
 //        return;
         if (empty($hookDataDTO->getCountPeople())) {
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error, количество людей не установлено");
+            $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: количество людей не установлено");
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
             return;
         }
 
         if (empty($hookDataDTO->getDataReserve())) {
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error, дата резерва не установлена");
+            $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:  дата резерва не установлена");
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
             return;
         }
 
         if (empty($hookDataDTO->getTimeReserve())) {
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error, время резерва не установлена");
+            $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: время резерва не установлена");
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
             return;
 
         }
 
         if (empty($hookDataDTO->getNameReserve())) {
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error, название  резерва не установлена");
+            $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:название  резерва не установлено");
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
             return;
 
         }
@@ -204,7 +238,7 @@ class WebhookController extends Controller
 
                 if (empty($result['response']['reserveInfo']['errorInfo'])) {
                     $idReserve = $result['response']['reserveInfo']['id'];
-                    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статут успех. Резерв создан на рассмотрение " . $idReserve);
+                    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус успех. Резерв создан на рассмотрение " . $idReserve);
                     if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
                         $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($resultNode['response'], true));
                     }
@@ -223,7 +257,7 @@ class WebhookController extends Controller
                 }
 
             } else {
-                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result, true));
+                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result['response']['errorDescription'], true));
                 if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
                     $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус ошибка " . print_r($resultNode['response'], true));
                 }

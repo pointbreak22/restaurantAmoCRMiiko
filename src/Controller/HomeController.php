@@ -43,7 +43,7 @@ class HomeController extends Controller
 
         //  $hookDataDTO->setContactEmail('zzzzzzzz@mail.ru');
         $hookDataDTO->setContactName('DEEDEDDEEDEe');
-        $hookDataDTO->setContactPhone('+998765423332');
+        $hookDataDTO->setContactPhone('998765423332');
 
         $ikoTableReservationService = new IikoTableReservationService();
         $result = $ikoTableReservationService->execute($hookDataDTO);
