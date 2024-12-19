@@ -51,10 +51,12 @@ class IikoTableReservationService
         $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupId], $hookDataDTO->getNameReserve()); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
 
         $customerDTO = $this->getCustomer($organizationsId, $hookDataDTO->getContactPhone(), $hookDataDTO->getContactName(), $hookDataDTO->getContactEmail());
+        if (is_array($customerDTO) && isset($customerDTO['httpCode']) && $customerDTO['httpCode'] >= 400) {
+            return $customerDTO;
+        }
 
-        //return $customerDTO;
-        $table = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $hookDataDTO->getContactPhone(), [$tables[0]], $hookDataDTO->getDataReserve(), $hookDataDTO->getTimeReserve(), $hookDataDTO->getCountPeople());
-        return $table;
+        $tableResult = $this->setTable($organizationsId, $terminalGroupId, $customerDTO, $hookDataDTO->getContactPhone(), [$tables[0]], $hookDataDTO->getDataReserve(), $hookDataDTO->getTimeReserve(), $hookDataDTO->getCountPeople());
+        return ['httpCode' => $tableResult['status'], 'response' => $tableResult['data']];
 
 
         //   dd($availableRestaurantSection);
@@ -112,7 +114,7 @@ class IikoTableReservationService
 
     }
 
-    private function getCustomer($organizationId, $phone, $name, $email): ?CustomerDTO
+    private function getCustomer($organizationId, $phone, $name, $email): CustomerDTO|array|null
     {
         $customerDTO = $this->customerRepository->get($organizationId, $phone);
 
@@ -138,9 +140,14 @@ class IikoTableReservationService
             );
 
 
-            $this->customerRepository->set($customerDTO);
+            $result = $this->customerRepository->set($customerDTO);
+            if (isset($result['status']) && $result['status'] >= 400) {
+
+                //  return  [$result['status'],$result['status']]];
+                return ['httpCode' => $result['status'], 'response' => $result['data']];
+            }
             $customerDTO = $this->customerRepository->get($organizationId, $phone);
-            dd($customerDTO);
+            //  dd($customerDTO);
             //   dd($customerDTO);
 
         }

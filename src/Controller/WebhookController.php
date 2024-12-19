@@ -12,6 +12,7 @@ use App\Service\AmoCRM\AmoNoteService;
 use App\Service\AmoCRM\SetContactService;
 use App\Service\AmoCRM\WebHookService;
 use App\Service\IikoTableReservationService;
+use Exception;
 use Random\RandomException;
 
 class WebhookController extends Controller
@@ -39,32 +40,51 @@ class WebhookController extends Controller
     public function handleWebhook()
     {
 
-//        try {
-//
-//            if ($_POST['leads']['update'][0]['modified_user_id'] == 0) {
-//                // Игнорируем автоматический вебхук
-//                return;
-//            }
-//
-//            if (!empty($data['leads']['update'])) {
-//                foreach ($data['leads']['update'] as $lead) {
-//                    foreach ($lead['custom_fields'] as $field) {
-//                        // Добавляем логику для конкретных полей
-//                        if ($field['id'] === 591981) {
-//                            $oldValue = $field['values'][0]['value'] ?? null;
-//                            $newValue = $field['values'][1]['value'] ?? null;
-//
-//                            if ($oldValue !== null && $newValue !== null) {
-//                                // Если изменение касается ненужного поля, игнорируем
-//                                return;
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            if (isset($_POST['fields']['Поле удалено'])) {
-//                return;
-//            }
+        try {
+
+            if ($_POST['leads']['update'][0]['modified_user_id'] == 0) {
+                // Игнорируем автоматический вебхук
+                return;
+            }
+
+            if (!empty($data['leads']['update'])) {
+                foreach ($data['leads']['update'] as $lead) {
+                    foreach ($lead['custom_fields'] as $field) {
+                        // Добавляем логику для конкретных полей
+                        if ($field['id'] === 591981) {
+                            $oldValue = $field['values'][0]['value'] ?? null;
+                            $newValue = $field['values'][1]['value'] ?? null;
+
+                            if ($oldValue !== null && $newValue !== null) {
+                                // Если изменение касается ненужного поля, игнорируем
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Фильтруем только изменения сделок
+            if (isset($webhookData['leads']['update'])) {
+                $break = false;
+                foreach ($webhookData['leads']['update'] as $lead) {
+                    // Проверяем, было ли изменено поле с определенным ID
+                    foreach ($lead['custom_fields'] as $field) {
+                        if ($field['id'] === 591981) { // ID поля "ID резервации"
+                            // Проверяем, если поле уже заполнено, игнорируем изменения
+                            if (!empty($field['values'][0]['value'])) {
+                                $break = true; // Прерываем выполнение, чтобы игнорировать вебхук
+                            }
+                        }
+                    }
+                }
+                if ($break) {
+                    return;
+                }
+            }
+            if (isset($_POST['fields']['Поле удалено'])) {
+                return;
+            }
 //
 //            if ($_POST['changed_by'] === 'robot') {
 //                return;
@@ -86,10 +106,10 @@ class WebhookController extends Controller
 //                        return;
 //                    }
 //                }
-//            }
-//        } catch (Exception $ex) {
-//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($ex, true));
-//        }
+
+        } catch (Exception $ex) {
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($ex, true));
+        }
 //        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($_POST['leads']['update'][0]['modified_user_id'], true));
 //        //  return;
 
@@ -174,17 +194,16 @@ class WebhookController extends Controller
 
         if ($hookDataDTO->isCreatedReserve() && $hookDataDTO->getIdReserve() == '') {
 
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result " . print_r($hookDataDTO, true));
+            //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result " . print_r($hookDataDTO, true));
 
             $result = $this->ikoTableReservationService->execute($hookDataDTO);
             $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result " . print_r($result, true));
 
-            return;
 
-            if ($result["status"] == 200) {
+            if ($result["httpCode"] == 200) {
 
-                if (empty($result['data']['reserveInfo']['errorInfo'])) {
-                    $idReserve = $result['data']['reserveInfo']['id'];
+                if (empty($result['response']['reserveInfo']['errorInfo'])) {
+                    $idReserve = $result['response']['reserveInfo']['id'];
                     $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статут успех. Резерв создан на рассмотрение " . $idReserve);
                     if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
                         $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($resultNode['response'], true));

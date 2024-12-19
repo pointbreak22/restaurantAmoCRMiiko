@@ -7,9 +7,9 @@ class HookDataDTO
 
     private bool $createdReserve = false;
     private string $leadId;
-    private string $contactName;
-    private string $contactEmail;
-    private string $contactPhone;
+    private string $contactName = "";
+    private string $contactEmail = "";
+    private string $contactPhone = "";
     private string $dataReserve = "";
     private string $idReserve = "";
 

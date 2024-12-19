@@ -41,9 +41,9 @@ class HomeController extends Controller
         //  $hookDataDTO->setCreatedReserve($createdReserve);
         //$hookDataDTO->setIdReserve($IdReserve);
 
-        $hookDataDTO->setContactEmail('zzzzzzzz@mail.ru');
+        //  $hookDataDTO->setContactEmail('zzzzzzzz@mail.ru');
         $hookDataDTO->setContactName('DEEDEDDEEDEe');
-        $hookDataDTO->setContactPhone('+77774444545545');
+        $hookDataDTO->setContactPhone('+998765423332');
 
         $ikoTableReservationService = new IikoTableReservationService();
         $result = $ikoTableReservationService->execute($hookDataDTO);
