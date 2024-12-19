@@ -12,6 +12,7 @@ use App\Service\AmoCRM\AmoNoteService;
 use App\Service\AmoCRM\SetContactService;
 use App\Service\AmoCRM\WebHookService;
 use App\Service\IikoTableReservationService;
+use Exception;
 use Random\RandomException;
 
 class WebhookController extends Controller
@@ -19,7 +20,7 @@ class WebhookController extends Controller
     private WebhookService $webhookService;
     private AmoAuthService $amoAuthService;
 
-    private SetContactService $getContactService;
+    private SetContactService $setContactService;
     private IikoTableReservationService $ikoTableReservationService;
 
     private AmoNoteService $amoNoteService;
@@ -39,11 +40,64 @@ class WebhookController extends Controller
     public function handleWebhook()
     {
 
+        try {
+
+            if ($_POST['leads']['update'][0]['modified_user_id'] == 0) {
+                // Игнорируем автоматический вебхук
+                return;
+            }
+
+            if (!empty($data['leads']['update'])) {
+                foreach ($data['leads']['update'] as $lead) {
+                    foreach ($lead['custom_fields'] as $field) {
+                        // Добавляем логику для конкретных полей
+                        if ($field['id'] === 591981) {
+                            $oldValue = $field['values'][0]['value'] ?? null;
+                            $newValue = $field['values'][1]['value'] ?? null;
+
+                            if ($oldValue !== null && $newValue !== null) {
+                                // Если изменение касается ненужного поля, игнорируем
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            if (isset($_POST['fields']['Поле удалено'])) {
+                return;
+            }
+
+            if ($_POST['changed_by'] === 'robot') {
+                return;
+            }
+
+
+            $lead = $_POST['leads']['update'][0];
+            if ($lead['status_id'] === $lead['old_status_id']) {
+                // Игнорируем, если статус не изменился
+                return;
+            }
+
+            $fields = $_POST['leads']['update'][0]['custom_fields'];
+
+            foreach ($fields as $field) {
+                if ($field['id'] === 591981) { // ID поля "Создать резерв"
+                    if (!empty($field['values'][0]['value'])) {
+                        // Игнорируем, если значение поля не "Да"
+                        return;
+                    }
+                }
+            }
+        } catch (Exception $ex) {
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($ex, true));
+        }
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($_POST['leads']['update'][0]['modified_user_id'], true));
+        //  return;
+
         $hookDataDTO = $this->webhookService->startProcessing();
 //
 //        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result2 ----------- " . print_r($hookDataDTO, true));
 //        return;
-
 
         $accessToken = $this->amoAuthService->initializeToken(true);
         if (!empty($hookDataDTO->getIdReserve())) {
@@ -70,11 +124,16 @@ class WebhookController extends Controller
 
         $this->amoNoteService = new AmoNoteService($accessToken);
 
-        $this->getContactService = new SetContactService($accessToken);
-        $result = $this->getContactService->setContactsByLead($hookDataDTO);
+        $this->setContactService = new SetContactService($accessToken);
+        $result = $this->setContactService->setContactsByLead($hookDataDTO);
+
+        if (isset($result['httpCode']) && $result['httpCode'] >= 400) {
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result['response'], true));
+            return;
+
+        }
+
         //получить поля в сделке
-        // $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
-        //return;
 
 
         //  $resultNode = $this->amoNoteService->getleads();
@@ -121,23 +180,31 @@ class WebhookController extends Controller
                 if (empty($result['data']['reserveInfo']['errorInfo'])) {
                     $idReserve = $result['data']['reserveInfo']['id'];
                     $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статут успех. Резерв создан на рассмотрение " . $idReserve);
+                    if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($resultNode['response'], true));
+                    }
 
 
                     $resultNode = $this->amoNoteService->editReserveInfo($hookDataDTO->getLeadId(), $idReserve);
+                    if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($resultNode['response'], true));
 
-
+                    }
                 } else {
                     $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result['data']['reserveInfo']['errorInfo']['message'], true));
-
+                    if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус ошибка " . print_r($resultNode['response'], true));
+                    }
                 }
 
             } else {
                 $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result, true));
-
+                if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                    $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус ошибка " . print_r($resultNode['response'], true));
+                }
             }
 
             //  $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), json_encode($result));
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус ошибка " . print_r($resultNode, true));
 
 
         } else {
@@ -146,6 +213,7 @@ class WebhookController extends Controller
 
 
         }
+        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($_POST, true));
 
 
     }

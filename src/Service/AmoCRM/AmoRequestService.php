@@ -31,11 +31,13 @@ class AmoRequestService
 //        }
 
         if ($httpCode >= 400) {
-            return "Error: {$httpCode}, Response: " . $response;
+
+            //  return "Error: {$httpCode}, Response: " . $response;
         }
 
         curl_close($ch);
-
-        return json_decode($response, true);
+        $response = json_decode($response, true);
+        return ['httpCode' => $httpCode, 'response' => $response];
+        //  return json_decode($response, true);
     }
 }

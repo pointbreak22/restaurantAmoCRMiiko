@@ -28,17 +28,29 @@ class SetContactService
     {
 
         // Получаем сделку по ID
-        $lead = $this->getLeadById($hookDataDTO->getLeadId());
-        // return $lead;  //получить список полей в сделке
+        $leadResponse = $this->getLeadById($hookDataDTO->getLeadId());
+
+        if ($leadResponse['httpCode'] >= 400) {
+            return $leadResponse;
+
+        }
+
+
+        //   return $lead;  //получить список полей в сделке
 
         // Проверяем, есть ли контакты в сделке
-        if (isset($lead['_embedded']['contacts']) && count($lead['_embedded']['contacts']) > 0) {
-            $contactId = $lead['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
+        if (isset($leadResponse['response']['_embedded']['contacts']) && count($leadResponse['response']['_embedded']['contacts']) > 0) {
+            $contactId = $leadResponse['response']['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
 
-            $contactInfo = $this->getContactsByIds($contactId); // Получаем подробности о контактах
-            if (isset($contactInfo['custom_fields_values']) && count($contactInfo['custom_fields_values']) > 0) {
+            $contactResponse = $this->getContactsByIds($contactId); // Получаем подробности о контактах
+            if ($contactResponse['httpCode'] >= 400) {
+                return $contactResponse;
 
-                return $this->setContactsByDataLead($hookDataDTO, $contactInfo);
+            }
+
+            if (isset($contactResponse['response']['custom_fields_values']) && count($contactResponse['response']['custom_fields_values']) > 0) {
+
+                return $this->setContactsByDataLead($hookDataDTO, $contactResponse['response']);
 
             } else {
 

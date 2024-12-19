@@ -21,7 +21,7 @@ class WebHookService
     }
 
 
-    public function startProcessing()
+    public function startProcessing(): HookDataDTO
     {
         // Логируем данные для отладки
 
