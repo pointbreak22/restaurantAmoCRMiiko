@@ -27,13 +27,12 @@ class WebHookService
 
         //  $data = json_decode(file_get_contents('php://input'), true);
         $data = $_POST;
-        // return $data;
+        //  return $data;
         // Проверка на наличие данных о лидах
         if (isset($data["leads"]["update"][0]['custom_fields'])) {
             try {
                 $this->setHookValues($data["leads"]["update"][0]['custom_fields'], $this->hookDataDTO);
                 $this->hookDataDTO->setLeadId($data["leads"]["update"][0]['id']);
-
             } catch (Exception $e) {
                 $this->logToFile(AMO_WEBHOOK_FILE, $e->getMessage());
             }

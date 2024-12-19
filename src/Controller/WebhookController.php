@@ -51,7 +51,6 @@ class WebhookController extends Controller
 //$this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Предупреждение: " . print_r("сделка создана", true));
 
             //    http_response_code(403);
-
             return;
 
         }
@@ -82,20 +81,17 @@ class WebhookController extends Controller
 //        $resultNode = $this->amoNoteService->editReserveInfo($hookDataDTO->getLeadId(), "eeeeeee");
 //
 //        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Get fields2 " . print_r($resultNode, true));
-//
-//
-//        return;
 
+
+//        return;
         if (empty($hookDataDTO->getCountPeople())) {
             $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error, количество людей не установлено");
             return;
-
         }
 
         if (empty($hookDataDTO->getDataReserve())) {
             $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error, дата резерва не установлена");
             return;
-
         }
 
         if (empty($hookDataDTO->getTimeReserve())) {
@@ -115,7 +111,7 @@ class WebhookController extends Controller
             $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
             return;
         }
-        if ($hookDataDTO->isCreatedReserve()) {
+        if ($hookDataDTO->isCreatedReserve() && empty($hookDataDTO->getIdReserve())) {
             $result = $this->ikoTableReservationService->execute($hookDataDTO);
             //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result " . print_r($result, true));
 
