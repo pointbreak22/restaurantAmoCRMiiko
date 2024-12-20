@@ -6,8 +6,10 @@ namespace App\Controller;
 //use Illuminate\Http\Request;
 //use Illuminate\Support\Facades\Log;
 
+use App\DTO\HookDataDTO;
 use App\Kernel\Controller\Controller;
 use App\Service\AmoCRM\AmoAuthService;
+use App\Service\AmoCRM\AmoLeadService;
 use App\Service\AmoCRM\AmoNoteService;
 use App\Service\AmoCRM\SetContactService;
 use App\Service\AmoCRM\WebHookService;
@@ -25,6 +27,9 @@ class WebhookController extends Controller
 
     private AmoNoteService $amoNoteService;
 
+
+    private AmoLeadService $amoLeadService;
+
     function __construct()
     {
         $this->webhookService = new WebhookService();
@@ -40,240 +45,171 @@ class WebhookController extends Controller
     public function handleWebhook()
     {
 
+// Проверка уникального идентификатора
+
         try {
 
-//            $webhookData = json_decode(file_get_contents('php://input'), true);
-//            //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод сообщения: " . print_r($webhookData, true));
-//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод сообщения: " . $webhookData);
+            $this->response()->send(
+                json_encode(['status' => 'success']),
+                200,
+                ['Content-Type: application/json'],
+            );
+            $hookDataDTO = new HookDataDTO();
+
+
+            $leadID = $this->webhookService->getLeadId();
+            if (empty($leadID)) {
+                throw new Exception("Статус ошибка: отсутствует id сделки");
+
+            }
+            $hookDataDTO->setLeadId($leadID);
+
+
+            //получение токена
+            $accessToken = $this->amoAuthService->initializeToken(true);
+
+            if (!isset($accessToken)) {
+
+
+                $this->response()->send(
+                    json_encode(['status' => 'Требуется авторизация']),
+                    401,
+                    ['Content-Type: application/json'],
+                );
+
+                throw new Exception("Статус ошибка: отсутствует авторизация");
+            }
+            $this->amoLeadService = new AmoLeadService($accessToken);
+            $this->amoNoteService = new AmoNoteService($accessToken);
+            $result = $this->amoLeadService->doHookData($leadID, $hookDataDTO);
+
+//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод: " . print_r($result, true));
 //
-
-//            return;
-// Проверяем, есть ли изменения в сделках
-//            if (isset($webhookData['leads']['update'])) {
-//                foreach ($webhookData['leads']['update'] as $lead) {
-//                    // Проверяем custom_fields на наличие изменения поля "ID резервации"
-//                    if (isset($lead['custom_fields'])) {
-//                        foreach ($lead['custom_fields'] as $field) {
-//                            if ($field['id'] === 591981) { // ID поля "ID резервации"
-//                                // Проверка, если поле изменено
-//                                $oldValue = $field['values'][0]['value'] ?? null;
-//                                $newValue = $field['values'][1]['value'] ?? null;
-//
-//                                // Если поле изменилось — игнорируем дальнейшую обработку
-//                                if ($oldValue !== $newValue && $oldValue !== null && $newValue !== null) {
-//                                    // Логируем для диагностики
-//                                    file_put_contents('log.txt', "Изменение поля 'ID резервации' было игнорировано.\n", FILE_APPEND);
-//                                    return; // Завершаем выполнение
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод: " . print_r($hookDataDTO, true));
 
 
-            if ($_POST['leads']['update'][0]['modified_user_id'] == 0) {
-                // Игнорируем автоматический вебхук
-                return;
+            if (!empty($hookDataDTO->getIdReserve())) {
+                // $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:установлен ид резерва");
+                //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
+                //    http_response_code(200);
+
+                $this->response()->send(
+                    json_encode(['status' => 'success']),
+                    200,
+                    ['Content-Type: application/json'],
+                );
+
+                //  throw new Exception("Приход лишнего хука " . print_r($_POST, true));
+
+                exit;
+
             }
 
-            if (!empty($data['leads']['update'])) {
-                foreach ($data['leads']['update'] as $lead) {
-                    foreach ($lead['custom_fields'] as $field) {
-                        // Добавляем логику для конкретных полей
-                        if ($field['id'] === 591981) {
-                            $oldValue = $field['values'][0]['value'] ?? null;
-                            $newValue = $field['values'][1]['value'] ?? null;
 
-                            if ($oldValue !== null && $newValue !== null) {
-                                // Если изменение касается ненужного поля, игнорируем
-                                return;
-                            }
+            if (empty($hookDataDTO->getCountPeople())) {
+                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: количество людей не установлено");
+                throw new Exception("Статус ошибка: количество людей не установлено");
+
+            }
+
+            if (empty($hookDataDTO->getDataReserve()) || empty($hookDataDTO->getTimeReserve())) {
+                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:  дата или время резерва не установлено");
+                throw new Exception("Статус ошибка:  дата или время резерва не установлено");
+//
+            }
+
+
+            if (empty($hookDataDTO->getNameReserve())) {
+                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:название  резерва не установлено");
+                throw new Exception("Статус ошибка:название  резерва не установлено");
+
+//
+            }
+
+            if (isset($result['httpCode']) && $result['httpCode'] >= 400) {
+                $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
+                throw new Exception("Ошибка: " . print_r($result, true));
+
+            }
+
+            //---------------------------------------------------------------
+
+            if ($hookDataDTO->isCreatedReserve()) {
+
+
+                // создание резерва
+                $result = $this->ikoTableReservationService->execute($hookDataDTO);
+
+                if ($result["httpCode"] == 200) {
+
+                    if (empty($result['response']['reserveInfo']['errorInfo'])) {
+                        $idReserve = $result['response']['reserveInfo']['id'];
+
+                        //если успех, то изменяет поле
+                        $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус успех. Резерв создан на рассмотрение " . $idReserve);
+
+                        if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                            throw new Exception("Ошибка: " . print_r($resultNode, true));
+
+                        }
+
+                        $resultNode = $this->amoNoteService->editReserveInfo($hookDataDTO->getLeadId(), $idReserve);
+                        if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                            throw new Exception("Ошибка: " . print_r($resultNode, true));
+                        }
+                    } else {
+                        $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result, true));
+                        if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                            throw new Exception("Ошибка: " . print_r($resultNode, true));
+
                         }
                     }
-                }
-            }
 
-            // Фильтруем только изменения сделок
-            if (isset($webhookData['leads']['update'])) {
-                $break = false;
-                foreach ($webhookData['leads']['update'] as $lead) {
-                    // Проверяем, было ли изменено поле с определенным ID
-                    foreach ($lead['custom_fields'] as $field) {
-                        if ($field['id'] === 591981) { // ID поля "ID резервации"
-                            // Проверяем, если поле уже заполнено, игнорируем изменения
-                            if (!empty($field['values'][0]['value'])) {
-                                $break = true; // Прерываем выполнение, чтобы игнорировать вебхук
-                            }
-                        }
-                    }
-                }
-                if ($break) {
-                    return;
-                }
-            }
-            if (isset($_POST['fields']['Поле удалено'])) {
-                return;
-            }
-//
-//            if ($_POST['changed_by'] === 'robot') {
-//                return;
-//            }
-//
-//
-//            $lead = $_POST['leads']['update'][0];
-//            if ($lead['status_id'] === $lead['old_status_id']) {
-//                // Игнорируем, если статус не изменился
-//                return;
-//            }
-//
-//            $fields = $_POST['leads']['update'][0]['custom_fields'];
-//
-//            foreach ($fields as $field) {
-//                if ($field['id'] === 591981) { // ID поля "Создать резерв"
-//                    if (!empty($field['values'][0]['value'])) {
-//                        // Игнорируем, если значение поля не "Да"
-//                        return;
-//                    }
-//                }
-
-        } catch (Exception $ex) {
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($ex, true));
-        }
-        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод сообщения: " . print_r($_POST, true));
-        // return;
-
-        $hookDataDTO = $this->webhookService->startProcessing();
-//
-        //  $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result2 ----------- " . print_r($hookDataDTO, true));
-        //   return;
-
-        $accessToken = $this->amoAuthService->initializeToken(true);
-        if (!empty($hookDataDTO->getIdReserve())) {
-            //       $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Резерв изначально была создан " . $hookDataDTO->getIdReserve());
-//$this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Предупреждение: " . print_r("сделка создана", true));
-
-            //    http_response_code(403);
-            return;
-
-        }
-        if (!isset($accessToken)) {
-            //    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Вы не авторизованны на сервере, чтоб авторизоваться перейдите по ссылке: " . HOST_SERVER);
-            //  $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result2 ----------- " . print_r($resultNode, true));
-            http_response_code(401);
-
-            echo json_encode([
-                'error' => 'Forbidden',
-                'message' => 'You do not have the necessary permissions to access this resource.'
-            ]);
-
-            return;
-        }
-//        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Обычный вывод: " . print_r($accessToken, true));
-//        return;
-
-        $this->amoNoteService = new AmoNoteService($accessToken);
-
-        $this->setContactService = new SetContactService($accessToken);
-        $result = $this->setContactService->setContactsByLead($hookDataDTO);
-
-//        if (isset($result['httpCode']) && $result['httpCode'] >= 400) {
-//                $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Обычный вывод" . print_r($hookDataDTO, true));
-//                return;
-//
-//             }
-
-        //получить поля в сделке
-
-
-        //  $resultNode = $this->amoNoteService->getleads();
-//        $resultNode = $this->amoNoteService->editReserveInfo($hookDataDTO->getLeadId(), "eeeeeee");
-//
-//        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Get fields2 " . print_r($resultNode, true));
-
-
-//        return;
-        if (empty($hookDataDTO->getCountPeople())) {
-            $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: количество людей не установлено");
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
-            return;
-        }
-
-        if (empty($hookDataDTO->getDataReserve())) {
-            $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:  дата резерва не установлена");
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
-            return;
-        }
-
-        if (empty($hookDataDTO->getTimeReserve())) {
-            $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: время резерва не установлена");
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
-            return;
-
-        }
-
-        if (empty($hookDataDTO->getNameReserve())) {
-            $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:название  резерва не установлено");
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
-            return;
-
-        }
-
-
-        if (isset($result['httpCode']) && $result['httpCode'] >= 400) {
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
-            return;
-        }
-
-
-        if ($hookDataDTO->isCreatedReserve() && $hookDataDTO->getIdReserve() == '') {
-
-            //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result " . print_r($hookDataDTO, true));
-
-            $result = $this->ikoTableReservationService->execute($hookDataDTO);
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "result " . print_r($result, true));
-
-
-            if ($result["httpCode"] == 200) {
-
-                if (empty($result['response']['reserveInfo']['errorInfo'])) {
-                    $idReserve = $result['response']['reserveInfo']['id'];
-                    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус успех. Резерв создан на рассмотрение " . $idReserve);
-                    if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
-                        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($resultNode['response'], true));
-                    }
-
-
-                    $resultNode = $this->amoNoteService->editReserveInfo($hookDataDTO->getLeadId(), $idReserve);
-                    if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
-                        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($resultNode['response'], true));
-
-                    }
                 } else {
-                    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result['data']['reserveInfo']['errorInfo']['message'], true));
+
+                    $errorMessage = "";
+
+                    if (isset($result['response']['errorDescription'])) {
+                        $errorMessage = $result['response']['errorDescription'];
+                    } elseif (isset($result['response']['message'])) {
+                        $errorMessage = $result['response']['message'];
+                    } else {
+                        $errorMessage = print_r($result, true);
+                    }
+
+                    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . $errorMessage);
                     if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
-                        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус ошибка " . print_r($resultNode['response'], true));
+                        throw new Exception("Ошибка: " . print_r($resultNode, true));
+
                     }
                 }
+
 
             } else {
-                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result['response']['errorDescription'], true));
-                if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
-                    $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус ошибка " . print_r($resultNode['response'], true));
-                }
+                $resultNode = "отключено создание резерва";
+                throw new Exception("Ошибка: " . print_r($resultNode, true));
+
+
             }
+            //  $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($_POST, true));
 
-            //  $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), json_encode($result));
-
-
-        } else {
-            $resultNode = "отключено создание резерва";
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус предупреждение: " . print_r($resultNode, true));
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод: конец выполнение хука");
 
 
+            $this->response()->send(
+                json_encode(['status' => 'success']),
+                200,
+                ['Content-Type: application/json'],
+            );
+        } catch (Exception $exception) {
+            $this->response()->send(
+                json_encode(['status' => 'success']),
+                200,
+                ['Content-Type: application/json'],
+            );
+            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус ошибка: " . $exception->getMessage());
+            exit;
         }
-        $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($_POST, true));
-
 
     }
 }

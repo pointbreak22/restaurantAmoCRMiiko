@@ -54,8 +54,8 @@ class AmoNoteService
     {
         $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
 
-        $url2 = "{$this->baseUrl}/api/v4/leads/{$leadId}";
-        
+        $url2 = "{$this->baseUrl}/api/v4/leads/{$leadId}?disable_webhooks=1";
+
         $data2 = [
             'custom_fields_values' => [
                 [
@@ -65,9 +65,11 @@ class AmoNoteService
 
                     ]
                 ]
-            ]
+            ],
+            'request_id' => uniqid(), // Уникальный идентификатор запроса
+
         ];
-        // return $data2;
+
         return $this->amoRequestService->makeRequest('PATCH', $url2, $this->accessToken, $data2);
 
 
