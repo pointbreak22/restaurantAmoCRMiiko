@@ -4,6 +4,7 @@ namespace App\Service\IIKO\Core;
 
 
 use App\Repository\IIKO\Token\TokenRepository;
+use Exception;
 
 define('IIKO_TOKEN_FILE', APP_PATH . '/var/tmp/iiko_token_info.json');
 
@@ -25,57 +26,61 @@ class IikoTokenService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getToken()
     {
         $tokenData = $this->getFileToken();
         //  dd($tokenData);
         if (empty($tokenData['token'])) {
-            return $this->getNewApiToken()['token'];//['token']
+            $result = $this->getNewApiToken();
+
+            if (isset($result['status']) && $result['status'] >= 401) {
+                return $result;
+            }
+
+            return $result['token'];
+
         }
         // dd($tokenData);
         return $tokenData['token'];
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getNewToken()
     {
-        return $this->getNewApiToken()['token'];
-    }
+        $result = ($this->getNewApiToken());
 
-//    public function getCorrelationId()
-//    {
-//        $tokenData = $this->getFileToken("token.json");
-//
-//        if (empty($tokenData['correlationId'])) {
-//            return $this->getNewApiToken();//['correlationId']
-//        }
-//        return $tokenData['correlationId'];
-//    }
+        if (isset($result['status']) && $result['status'] >= 401) {
+            return $result;
+        }
+        return $result['token'];
+    }
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getNewApiToken(): array
     {
         $result = $this->tokenRepository->get();
 
-        if (!isset($result['data'])) {
-            throw new \Exception('Ошибка при получение токена из ключа');
+        if (isset($result['status']) && $result['status'] >= 401) {
+            return $result;
         }
+
+
         $this->setFileToken($result['data']);
         return $result['data'];
 
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    private function getFileToken(): array
+    public function getFileToken(): array
     {// Проверяем, существует ли файл
         if (!file_exists(IIKO_TOKEN_FILE)) {
             // Выбрасываем исключение или возвращаем ошибку, если файл не существует

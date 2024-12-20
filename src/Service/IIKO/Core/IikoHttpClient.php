@@ -8,8 +8,9 @@ class IikoHttpClient
 {
     private array $headers = ['Content-Type: application/json', 'Accept: application/json'];
 
-    public function execute(string $url, array $headers = [], array $params = []): mixed
+    public function execute(string $url, array $headers = [], array $params = []): array
     {
+
         //  dd($url, $headers, $params);
 
         try {
@@ -31,8 +32,11 @@ class IikoHttpClient
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
             }
 
+
             // Execute the cURL request
             $response = curl_exec($ch);
+
+
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 
@@ -44,11 +48,11 @@ class IikoHttpClient
 
 
             $arrayList = json_decode($response, true);
-
+            //    dd($httpCode);
 
             return ['status' => $httpCode, 'data' => $arrayList];
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             dd([
                 'class' => $this::class,
                 'error' => $e->getMessage(),

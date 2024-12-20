@@ -26,7 +26,6 @@ class AmoNoteService
      */
     public function addNoteToLead(int $leadId, string $text): mixed
     {
-//        $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
 
 
         //   return [$leadId, $text];

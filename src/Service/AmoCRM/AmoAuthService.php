@@ -56,7 +56,7 @@ class AmoAuthService
         $accessToken = $this->getToken();
 
 
-        // Если токен действителен, показываем информацию о аккаунте
+        // Если токен действителен, показываем информацию об аккаунте
         if ($this->isTokenValid($accessToken)) {
             $this->displayAccountInfo($accessToken);
         } else {
@@ -246,7 +246,7 @@ class AmoAuthService
 
             //  dd($accessToken);
 
-            printf('Вы успешно авторизированны, ID аккаунта - %s, название - %s', $parsedBody['id'], $parsedBody['name']);
+            printf('Вы успешно авторизированны в AmoCRM, ID аккаунта - %s, название - %s', $parsedBody['id'], $parsedBody['name']);
         } catch (GuzzleException $e) {
             var_dump((string)$e);
         }

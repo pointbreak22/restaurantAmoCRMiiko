@@ -174,10 +174,10 @@ class WebhookController extends Controller
                     } elseif (isset($result['response']['message'])) {
                         $errorMessage = $result['response']['message'];
                     } else {
-                        $errorMessage = print_r($result, true);
+                        $errorMessage = print_r($result['response'], true);
                     }
 
-                    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . $errorMessage);
+                    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Ошибка IIKO, статус " . $result["httpCode"] . " ошибка " . $errorMessage);
                     if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
                         throw new Exception("Ошибка: " . print_r($resultNode, true));
 

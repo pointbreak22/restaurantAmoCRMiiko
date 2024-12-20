@@ -10,6 +10,7 @@ use App\Repository\IIKO\Reservation\CustomerRepository;
 use App\Repository\IIKO\Reservation\OrganizationRepository;
 use App\Repository\IIKO\Reservation\TableRepository;
 use App\Repository\IIKO\Reservation\TerminalGroupRepository;
+use App\Service\IIKO\Core\IikoTokenService;
 
 /**
  * step: инициализация подключение (получения токена)
@@ -26,6 +27,8 @@ class IikoTableReservationService
     private CustomerRepository $customerRepository;
     private TableRepository $tableRepository;
 
+    private IikoTokenService $iikoTokenService;
+
     function __construct()
     {
         $this->organizationRepository = new OrganizationRepository();
@@ -33,13 +36,27 @@ class IikoTableReservationService
         $this->availableRestaurantSectionsRepository = new AvailableRestaurantSectionsRepository();
         $this->customerRepository = new CustomerRepository();
         $this->tableRepository = new TableRepository();
+        $this->iikoTokenService = new IikoTokenService();
     }
 
     /**
      * Главная функция резервации стола
+     * @throws \Exception
      */
-    public function execute(HookDataDTO $hookDataDTO): array
+    public function execute(HookDataDTO $hookDataDTO)
     {
+
+        $tokenResult = $this->iikoTokenService->getToken();
+
+        if (isset($tokenResult['status']) && $tokenResult['status'] >= 400) {
+            return ['httpCode' => $tokenResult['status'], 'response' => $tokenResult['data']];
+        }
+
+        if (!isset($tokenResult['token'])) {
+            return $tokenResult;
+        }
+
+
         //////!!!!!!!!
         // return [$name, $email, $phone, $dateVisit, $durationInMinutes, $banketName];
         $organizationsId = $this->getOrganisationsId();  //получает организацию
@@ -50,6 +67,10 @@ class IikoTableReservationService
         $terminalGroupId = $this->getTerminalGroupsId([$organizationsId]); // из организации получает термальную группу.
         $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupId], $hookDataDTO->getNameReserve()); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
 
+        if (is_array($tables) && isset($tables['httpCode']) && $tables['httpCode'] >= 400) {
+            return $tables;
+        }
+
         $customerDTO = $this->getCustomer($organizationsId, $hookDataDTO->getContactPhone(), $hookDataDTO->getContactName(), $hookDataDTO->getContactEmail());
         if (is_array($customerDTO) && isset($customerDTO['httpCode']) && $customerDTO['httpCode'] >= 400) {
             return $customerDTO;
@@ -59,16 +80,11 @@ class IikoTableReservationService
         return ['httpCode' => $tableResult['status'], 'response' => $tableResult['data']];
 
 
-        //   dd($availableRestaurantSection);
-//        $params = [
-//            'organisationId' => $this->getOrganisationId(),
-//        ];
-
-//        $tableReservationId = $this->tableRepository->addReservation($params);
     }
 
     private function getOrganisationsId(): string
     {
+
 
         $response = $this->organizationRepository->get();
         // dd($response);
@@ -97,11 +113,16 @@ class IikoTableReservationService
 
         $restaurantSections = $response['data']['restaurantSections'];
 
-        $targetSection = array_filter($restaurantSections, function ($section) {
-            return $section['name'] === 'Знахарь';
+        $targetSection = array_filter($restaurantSections, function ($section) use ($banketName) {
+            return $section['name'] === $banketName;
         });
         // Если нужен только первый элемент
         $targetSection = reset($targetSection);
+
+        if (empty($targetSection)) {
+
+            return ['httpCode' => 400, 'response' => "Отсутствуют столы в резерве:" . $banketName];
+        }
 
 
         //  dd($targetSection);

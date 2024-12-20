@@ -15,7 +15,7 @@ class MainRepository
         $this->apiService = new IikoApiService();
     }
 
-    protected function request(string $method, mixed $params = []): mixed
+    protected function request(string $method, mixed $params = []): array
     {
 
         return $this->apiService->execute($this->url, $method, $params);

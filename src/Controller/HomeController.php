@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\DTO\HookDataDTO;
 use App\Kernel\Controller\Controller;
 use App\Service\AmoCRM\AmoAuthService;
+use App\Service\IIKO\Core\IikoTokenService;
 use App\Service\IikoTableReservationService;
 use Random\RandomException;
 
@@ -24,15 +25,41 @@ class HomeController extends Controller
 
     /**
      * @throws RandomException
+     * @throws \Exception
      */
     public function index(): void
     {
+
+
+        $result = (new IikoTokenService())->getNewToken();
+
+        //  dd($result);
+        if (isset($result['token']))
+            echo "token: " . $result['token'] . "\n";
+        elseif (isset($result['status']) && $result['status'] >= 400) {
+            //    return $result;
+            echo "Ошибка токена: " . $result['data']['errorDescription'] . "<br>";
+        }
+
+
         $result = $this->amoAuthService->initializeToken();
 
     }
 
     public function iiko(): void
     {
+
+
+        $result = (new IikoTokenService())->getNewToken();
+
+        if (isset($result['token']))
+            echo "token: " . $result['token'] . "\n";
+        elseif (isset($result['status']) && $result['status'] >= 400) {
+            //    return $result;
+            echo "Ошибка токена: " . $result['data']['errorDescription'] . "<br>";
+        }
+
+
         $hookDataDTO = new HookDataDTO();
         $hookDataDTO->setDataReserve('2024-12-20 14:15:22.123',);
         $hookDataDTO->setTimeReserve('180');
@@ -45,6 +72,8 @@ class HomeController extends Controller
         $hookDataDTO->setContactName('DEEDEDDEEDEe');
         $hookDataDTO->setContactPhone('998765423332');
 
+
+        //dd($hookDataDTO);
         $ikoTableReservationService = new IikoTableReservationService();
         $result = $ikoTableReservationService->execute($hookDataDTO);
         dd($result);
