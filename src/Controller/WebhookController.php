@@ -98,8 +98,7 @@ class WebhookController extends Controller
 
             if (empty($hookDataDTO->getCountPeople())) {
                 $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: количество людей не установлено");
-
-
+                $resultNode = $amoNoteService->editCreatedReserveInfo($hookDataDTO->getLeadId());
                 throw new Exception("Статус ошибка: количество людей не установлено");
 
             }

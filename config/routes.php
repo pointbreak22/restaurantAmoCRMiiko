@@ -5,9 +5,8 @@ use App\Kernel\Router\Route;
 
 return [
 
-    Route::get('/', [\App\Controller\HomeController::class, 'index']),
-
-    Route::get('/auth/callback', [\App\Controller\HomeController::class, 'handleCallback']), // добавлен маршрут для /oauth/callback
-    Route::post('/webhook/handler', [\App\Controller\WebhookController::class, 'handleWebhook']),
-    Route::get('/iiko', [\App\Controller\HomeController::class, 'iiko']),
+    Route::get(APP_PROJECT . '/', [\App\Controller\HomeController::class, 'index']),
+    Route::get(APP_PROJECT . '/auth/callback', [\App\Controller\HomeController::class, 'handleCallback']), // добавлен маршрут для /oauth/callback
+    Route::post(APP_PROJECT . '/webhook/handler', [\App\Controller\WebhookController::class, 'handleWebhook']),
+    Route::get(APP_PROJECT . '/iiko', [\App\Controller\HomeController::class, 'iiko']),
 ];

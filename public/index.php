@@ -16,6 +16,7 @@ try {
 
     define("APP_ENV", $_SERVER['APP_ENV']);
     define("APP_URL", $_SERVER['APP_URL']);
+    define("APP_PROJECT", $_SERVER['APP_PROJECT']);
     define("IIKO_API_KEY", $_SERVER['IIKO_API_KEY']);
 
 
@@ -23,8 +24,8 @@ try {
     define("AMO_CLIENT_SECRET", $_SERVER['AMO_CLIENT_SECRET']);
 
 
-    define("HOST_SERVER", $_SERVER['SERVER_NAME'] . $_SERVER['REDIRECT_URL']);
-
+    //define("HOST_SERVER", $_SERVER['SERVER_NAME'] . $_SERVER['REDIRECT_URL']);
+    //dd($_SERVER);
 
     //  dd(HOST_SERVER);
 

@@ -33,7 +33,6 @@ class HomeController extends Controller
     public function index(): void
     {
 
-        dd("run");
 
         $result = (new IikoTokenService())->getNewToken();
 

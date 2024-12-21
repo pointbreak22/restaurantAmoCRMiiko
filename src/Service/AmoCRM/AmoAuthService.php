@@ -43,8 +43,7 @@ class AmoAuthService
         $this->provider = new AmoCRM([
             'clientId' => AMO_CLIENT_ID,
             'clientSecret' => AMO_CLIENT_SECRET,
-            //  'redirectUri' =>    AMO_REDIRECT_URI,
-            'redirectUri' => "https://" . HOST_SERVER . "auth/callback"
+            'redirectUri' => "https://" . APP_URL . APP_PROJECT . "/auth/callback"
 
         ]);
 
@@ -129,6 +128,11 @@ class AmoAuthService
     private function showAuthButton(): void
     {
 
+        if (file_exists(AMO_TOKEN_FILE)) {
+            unlink(AMO_TOKEN_FILE);
+        }
+
+
         // Генерация уникального состояния для защиты от CSRF атак
         $_SESSION['oauth2state'] = bin2hex(random_bytes(16));
 
@@ -185,7 +189,7 @@ class AmoAuthService
         }
 
 
-        header('Location: /');
+        header('Location: ' . APP_PROJECT);
         exit;
     }
 
@@ -217,7 +221,7 @@ class AmoAuthService
             'clientId' => AMO_CLIENT_ID,
             'clientSecret' => AMO_CLIENT_SECRET,
             //   'redirectUri' => AMO_REDIRECT_URI,
-            'redirectUri' => "https://" . HOST_SERVER . "auth/callback"
+            'redirectUri' => "https://" . APP_URL . APP_PROJECT . "/auth/callback"
         ]);
         // dd($provider);
 
