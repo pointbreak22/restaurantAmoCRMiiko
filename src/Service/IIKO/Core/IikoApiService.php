@@ -25,13 +25,11 @@ class IikoApiService
 
         // Prepare request
         $url = $apiUrl . $apiMethod;
-
         //    return $url;
         $headers = [];
         if (!isset($params['apiLogin'])) {
             $headers = ['Authorization: Bearer ' . $this->getToken()];
         }
-
         $response = $this->httpClient->execute($url, $headers, $params);
 
 //        if (isset($response['status'])) {

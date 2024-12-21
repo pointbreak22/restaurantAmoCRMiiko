@@ -32,35 +32,35 @@ class AmoLeadService
     {
 
         $leadResponse = $this->getLeadById($leadId);
-        if ($leadResponse['httpCode'] >= 400) {
+        if ($leadResponse['status'] >= 400) {
             return $leadResponse;
         }
 
-        $leadArray = $leadResponse["response"]['custom_fields_values'];
+        $leadArray = $leadResponse['data']['custom_fields_values'];
 
         $this->writeLeadToHookData($leadArray, $hookDataDTO);
 
         // return $leadArray;
 
-        $contactId = $leadResponse['response']['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
+        $contactId = $leadResponse['data']['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
 
         $contactResponse = $this->getContactsByIds($contactId); // Получаем подробности о контактах
 
-        if ($contactResponse['httpCode'] >= 400) {
+        if ($contactResponse['status'] >= 400) {
             return $contactResponse;
 
         }
 
-        $contactName = $contactResponse['response']['name'];
+        $contactName = $contactResponse['data']['name'];
         $hookDataDTO->setContactName($contactName);
 
-        $contactArray = $contactResponse['response']['custom_fields_values'];
+        $contactArray = $contactResponse['data']['custom_fields_values'];
 
         $this->writeContactToHookData($contactArray, $hookDataDTO);
 
 
         // return $leadArray;
-        return ['httpCode' => 200, 'response' => "Успешное заполнение хука"];
+        return ['status' => 200, 'data' => "Успешное заполнение хука"];
     }
 
     /**
@@ -149,6 +149,7 @@ class AmoLeadService
         $url = "{$this->baseUrl}/api/v4/contacts/{$contactId}";
 
         $response = $this->amoRequestService->makeRequest('GET', $url, $this->accessToken);
+
 
         return $response;
     }

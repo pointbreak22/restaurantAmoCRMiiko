@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 
-use App\DTO\HookDataDTO;
 use App\Kernel\Controller\Controller;
 use App\Service\AmoCRM\AmoAuthService;
 use App\Service\IIKO\Core\IikoTokenService;
@@ -37,12 +36,14 @@ class HomeController extends Controller
 
         $result = (new IikoTokenService())->getNewToken();
 
+
         //  dd($result);
-        if (isset($result['token']))
-            echo "token: " . $result['token'] . "\n";
-        elseif (isset($result['status']) && $result['status'] >= 400) {
+
+        if (isset($result['status']) && $result['status'] >= 400) {
             //    return $result;
             echo "Ошибка токена: " . $result['data']['errorDescription'] . "<br>";
+        } else {
+            //       echo "token: " . $result . "<br>";
         }
 
 
@@ -50,38 +51,39 @@ class HomeController extends Controller
 
     }
 
+    /**
+     * @throws Exception
+     */
     public function iiko(): void
     {
-
-
-        $result = (new IikoTokenService())->getNewToken();
-
-        if (isset($result['token']))
-            echo "token: " . $result['token'] . "\n";
-        elseif (isset($result['status']) && $result['status'] >= 400) {
-            //    return $result;
-            echo "Ошибка токена: " . $result['data']['errorDescription'] . "<br>";
-        }
-
-
-        $hookDataDTO = new HookDataDTO();
-        $hookDataDTO->setDataReserve('2024-12-20 14:15:22.123');
-        $hookDataDTO->setTimeReserve('180');
-        $hookDataDTO->setCountPeople('4');
-        $hookDataDTO->setNameReserve("Знахарь");
-        //  $hookDataDTO->setCreatedReserve($createdReserve);
-        //$hookDataDTO->setIdReserve($IdReserve);
-
-        //  $hookDataDTO->setContactEmail('zzzzzzzz@mail.ru');
-        $hookDataDTO->setContactName('DEEDEDDEEDEe');
-        $hookDataDTO->setContactPhone('998765423332');
-
-
-        //dd($hookDataDTO);
-        $ikoTableReservationService = new IikoTableReservationService();
-        $result = $ikoTableReservationService->execute($hookDataDTO);
-        dd($result);
-
+//        $result = (new IikoTokenService())->getToken();
+//
+//
+//        if (isset($result['token']))
+//            echo "token: " . $result['token'] . "\n";
+//        elseif (isset($result['status']) && $result['status'] >= 400) {
+//            //    return $result;
+//            echo "Ошибка токена: " . $result['data']['errorDescription'] . "<br>";
+//        }
+//
+//
+//        $hookDataDTO = new HookDataDTO();
+//        $hookDataDTO->setDataReserve('2024-12-20 14:15:22.123');
+//        $hookDataDTO->setTimeReserve('180');
+//        $hookDataDTO->setCountPeople('4');
+//        $hookDataDTO->setNameReserve("Знахарь");
+//        //  $hookDataDTO->setCreatedReserve($createdReserve);
+//        //$hookDataDTO->setIdReserve($IdReserve);
+//
+//        //  $hookDataDTO->setContactEmail('zzzzzzzz@mail.ru');
+//        $hookDataDTO->setContactName('DEEDEDDEEDEe');
+//        $hookDataDTO->setContactPhone('998765423332');
+//
+//
+//        //dd($hookDataDTO);
+//        $ikoTableReservationService = new IikoTableReservationService();
+//        $result = $ikoTableReservationService->execute($hookDataDTO);
+//        dd($result);
 
     }
 

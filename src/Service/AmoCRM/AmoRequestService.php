@@ -33,7 +33,7 @@ class AmoRequestService
         curl_close($ch);
 
         $response = json_decode($response, true);
-        return ['httpCode' => $httpCode, 'response' => $response];
+        return ['status' => $httpCode, 'data' => $response];
         //  return json_decode($response, true);
     }
 }

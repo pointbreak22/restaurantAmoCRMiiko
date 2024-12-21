@@ -11,7 +11,7 @@ class IikoHttpClient
     public function execute(string $url, array $headers = [], array $params = []): array
     {
 
-        //  dd($url, $headers, $params);
+//        dd($url, $headers, $params);
 
         try {
             // Prepare headers
@@ -39,7 +39,7 @@ class IikoHttpClient
 
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-
+            //    dd($httpCode);
             if ($response === false) {
                 curl_close($ch);
                 throw new Exception('cURL Error: ' . curl_error($ch));

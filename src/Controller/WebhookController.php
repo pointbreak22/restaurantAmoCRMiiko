@@ -11,7 +11,6 @@ use App\Kernel\Controller\Controller;
 use App\Service\AmoCRM\AmoAuthService;
 use App\Service\AmoCRM\AmoLeadService;
 use App\Service\AmoCRM\AmoNoteService;
-use App\Service\AmoCRM\SetContactService;
 use App\Service\AmoCRM\WebHookService;
 use App\Service\IikoTableReservationService;
 use Exception;
@@ -22,13 +21,9 @@ class WebhookController extends Controller
     private WebhookService $webhookService;
     private AmoAuthService $amoAuthService;
 
-    private SetContactService $setContactService;
+
     private IikoTableReservationService $ikoTableReservationService;
 
-    private AmoNoteService $amoNoteService;
-
-
-    private AmoLeadService $amoLeadService;
 
     function __construct()
     {
@@ -79,19 +74,38 @@ class WebhookController extends Controller
 
                 throw new Exception("Статус ошибка: отсутствует авторизация");
             }
-            $this->amoLeadService = new AmoLeadService($accessToken);
-            $this->amoNoteService = new AmoNoteService($accessToken);
-            $result = $this->amoLeadService->doHookData($leadID, $hookDataDTO);
+            $amoLeadService = new AmoLeadService($accessToken);
+            $amoNoteService = new AmoNoteService($accessToken);
+            $result = $amoLeadService->doHookData($leadID, $hookDataDTO);
 
-//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод: " . print_r($result, true));
+
+            if (empty($hookDataDTO->getCountPeople())) {
+                $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: количество людей не установлено");
+                throw new Exception("Статус ошибка: количество людей не установлено");
+
+            }
+
+            if (empty($hookDataDTO->getDataReserve()) || empty($hookDataDTO->getTimeReserve())) {
+                $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:  дата или время резерва не установлено");
+                throw new Exception("Статус ошибка:  дата или время резерва не установлено");
 //
-//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод: " . print_r($hookDataDTO, true));
+            }
 
+
+            if (empty($hookDataDTO->getNameReserve())) {
+                $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:название  резерва не установлено");
+                throw new Exception("Статус ошибка:название  резерва не установлено");
+
+//
+            }
+
+            if (isset($result['status']) && $result['status'] >= 400) {
+                $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
+                throw new Exception("Ошибка: " . print_r($result, true));
+
+            }
 
             if (!empty($hookDataDTO->getIdReserve())) {
-                // $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:установлен ид резерва");
-                //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($resultNode, true));
-                //    http_response_code(200);
 
                 $this->response()->send(
                     json_encode(['status' => 'success']),
@@ -100,37 +114,10 @@ class WebhookController extends Controller
                 );
 
                 //  throw new Exception("Приход лишнего хука " . print_r($_POST, true));
-
                 exit;
 
             }
 
-
-            if (empty($hookDataDTO->getCountPeople())) {
-                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: количество людей не установлено");
-                throw new Exception("Статус ошибка: количество людей не установлено");
-
-            }
-
-            if (empty($hookDataDTO->getDataReserve()) || empty($hookDataDTO->getTimeReserve())) {
-                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:  дата или время резерва не установлено");
-                throw new Exception("Статус ошибка:  дата или время резерва не установлено");
-//
-            }
-
-
-            if (empty($hookDataDTO->getNameReserve())) {
-                $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:название  резерва не установлено");
-                throw new Exception("Статус ошибка:название  резерва не установлено");
-
-//
-            }
-
-            if (isset($result['httpCode']) && $result['httpCode'] >= 400) {
-                $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
-                throw new Exception("Ошибка: " . print_r($result, true));
-
-            }
 
             //---------------------------------------------------------------
 
@@ -140,26 +127,26 @@ class WebhookController extends Controller
                 // создание резерва
                 $result = $this->ikoTableReservationService->execute($hookDataDTO);
 
-                if ($result["httpCode"] == 200) {
+                if ($result['status'] == 200) {
 
-                    if (empty($result['response']['reserveInfo']['errorInfo'])) {
-                        $idReserve = $result['response']['reserveInfo']['id'];
+                    if (empty($result['data']['reserveInfo']['errorInfo'])) {
+                        $idReserve = $result['data']['reserveInfo']['id'];  //$idReserve
 
                         //если успех, то изменяет поле
-                        $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус успех. Резерв создан на рассмотрение " . $idReserve);
+                        $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус успех. Резерв создан на рассмотрение " . $idReserve);
 
-                        if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                        if (isset($resultNode['status']) && $resultNode['status'] >= 400) {
                             throw new Exception("Ошибка: " . print_r($resultNode, true));
 
                         }
 
-                        $resultNode = $this->amoNoteService->editReserveInfo($hookDataDTO->getLeadId(), $idReserve);
-                        if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                        $resultNode = $amoNoteService->editReserveInfo($hookDataDTO->getLeadId(), $idReserve);
+                        if (isset($resultNode['status']) && $resultNode['status'] >= 400) {
                             throw new Exception("Ошибка: " . print_r($resultNode, true));
                         }
                     } else {
-                        $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result, true));
-                        if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                        $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка: " . print_r($result['data']['reserveInfo']['errorInfo'], true));
+                        if (isset($resultNode['status']) && $resultNode['status'] >= 400) {
                             throw new Exception("Ошибка: " . print_r($resultNode, true));
 
                         }
@@ -169,16 +156,16 @@ class WebhookController extends Controller
 
                     $errorMessage = "";
 
-                    if (isset($result['response']['errorDescription'])) {
-                        $errorMessage = $result['response']['errorDescription'];
-                    } elseif (isset($result['response']['message'])) {
-                        $errorMessage = $result['response']['message'];
+                    if (isset($result['data']['errorDescription'])) {
+                        $errorMessage = $result['data']['errorDescription'];
+                    } elseif (isset($result['data']['message'])) {
+                        $errorMessage = $result['data']['message'];
                     } else {
-                        $errorMessage = print_r($result['response'], true);
+                        $errorMessage = print_r($result, true);
                     }
 
-                    $resultNode = $this->amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Ошибка IIKO, статус " . $result["httpCode"] . " ошибка " . $errorMessage);
-                    if (isset($resultNode['httpCode']) && $resultNode['httpCode'] >= 400) {
+                    $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Ошибка IIKO, статус " . $result['status'] . " ошибка " . $errorMessage);
+                    if (isset($resultNode['status']) && $resultNode['status'] >= 400) {
                         throw new Exception("Ошибка: " . print_r($resultNode, true));
 
                     }
