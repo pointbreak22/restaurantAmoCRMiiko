@@ -88,7 +88,7 @@ class AmoLeadService
                 // Форматируем в нужный вид
                 $formattedDate = $date->format('Y-m-d H:i:s.v');
 
-                preg_match('/с (\d{2}:\d{2}) по (\d{2}:\d{2})/', $timeReserve, $matches);
+                preg_match('/с (\d{2}:\d{2}) до (\d{2}:\d{2})/', $timeReserve, $matches);
                 $startTime = $matches[1]; // 14:00
                 $endTime = $matches[2];   // 16:00
                 $datetime = new DateTime($formattedDate);

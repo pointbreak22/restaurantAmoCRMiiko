@@ -107,12 +107,6 @@ class WebhookController extends Controller
 
             }
 
-            if (empty($hookDataDTO->getDataReserve()) || empty($hookDataDTO->getTimeReserve())) {
-                $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:  дата или время резерва не установлено");
-                $resultNode = $amoNoteService->editCreatedReserveInfo($hookDataDTO->getLeadId());
-                throw new Exception("Статус ошибка:  дата или время резерва не установлено");
-
-            }
 
             if (empty($hookDataDTO->getNameReserve())) {
                 $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:название  резерва не установлено");
@@ -120,6 +114,14 @@ class WebhookController extends Controller
                 throw new Exception("Статус ошибка:название  резерва не установлено");
 
             }
+
+            if (empty($hookDataDTO->getDataReserve()) || empty($hookDataDTO->getTimeReserve())) {
+                $resultNode = $amoNoteService->addNoteToLead($hookDataDTO->getLeadId(), "Статус ошибка:  дата или время резерва не установлено");
+                $resultNode = $amoNoteService->editCreatedReserveInfo($hookDataDTO->getLeadId());
+                throw new Exception("Статус ошибка:  дата или время резерва не установлено--" . $hookDataDTO->getDataReserve() . "--" . $hookDataDTO->getTimeReserve());
+
+            }
+
 
             if (!empty($hookDataDTO->getIdReserve())) {
 
