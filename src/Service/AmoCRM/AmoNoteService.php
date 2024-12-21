@@ -26,8 +26,6 @@ class AmoNoteService
      */
     public function addNoteToLead(int $leadId, string $text): mixed
     {
-
-
         //   return [$leadId, $text];
         $url = "{$this->baseUrl}/api/v4/leads/notes";
 
@@ -43,9 +41,7 @@ class AmoNoteService
             ]
         ];
 
-
         // Отправка POST-запроса
-        //
         return $this->amoRequestService->makeRequest('POST', $url, $this->accessToken, $data);
     }
 
@@ -74,12 +70,29 @@ class AmoNoteService
 
     }
 
-    public function getleads()
-    {
-        $url = "{$this->baseUrl}/api/v4/leads/metadata";
-        $response = $this->amoRequestService->makeRequest('GET', $url, $this->accessToken);
 
-        return $response;
+    public function editCreatedReserveInfo(int $leadId): mixed
+    {
+        $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
+
+        $url2 = "{$this->baseUrl}/api/v4/leads/{$leadId}?disable_webhooks=1";
+
+        $data2 = [
+            'custom_fields_values' => [
+                [
+                    'field_id' => (int)$amoFieldsConfig['createReserveField']['id'],
+                    'values' => [
+                        ['enum_id' => (int)$amoFieldsConfig['createReserveField']['No']] // Установка текстового значения
+
+                    ]
+                ]
+            ],
+            'request_id' => uniqid(), // Уникальный идентификатор запроса
+
+        ];
+
+        return $this->amoRequestService->makeRequest('PATCH', $url2, $this->accessToken, $data2);
+
 
     }
 

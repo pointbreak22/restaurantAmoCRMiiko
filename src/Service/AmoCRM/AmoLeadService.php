@@ -35,6 +35,9 @@ class AmoLeadService
         if ($leadResponse['status'] >= 400) {
             return $leadResponse;
         }
+        //Вывод полей сделки
+        //return $leadResponse;
+
 
         $leadArray = $leadResponse['data']['custom_fields_values'];
 
@@ -159,8 +162,8 @@ class AmoLeadService
     {
         $createdReserve = false;
         foreach ($data as $item) {
-            if ($item['field_id'] == $createReserveField) {
-                if ($item['values'][0]['value'] == "Да")
+            if ($item['field_id'] == $createReserveField['id']) {
+                if ($item['values'][0]['enum_id'] == $createReserveField['Yes'])
                     $createdReserve = true;
                 break;
 
