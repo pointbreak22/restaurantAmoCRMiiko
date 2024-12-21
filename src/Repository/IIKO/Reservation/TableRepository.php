@@ -26,7 +26,7 @@ class TableRepository extends MainRepository
             //"id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
             //  "externalNumber": "string", //номер банкета
             "customer" => $this->customerRepository->toArray($customer),
-            "phone" => $number,
+            "phone" => str_starts_with($number, "+") ? $number : "+" . $number,
             //"guestsCount": 0,
             "comment" => "Данная заявка это фейк, тест Api",
             "durationInMinutes" => $durationInMinutes,  //продолжительность в минутах
