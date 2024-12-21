@@ -36,7 +36,7 @@ class AmoLeadService
             return $leadResponse;
         }
         //Вывод полей сделки
-        //return $leadResponse;
+        //  return $leadResponse;
 
 
         $leadArray = $leadResponse['data']['custom_fields_values'];

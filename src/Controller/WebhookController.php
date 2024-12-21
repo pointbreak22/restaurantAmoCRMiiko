@@ -43,6 +43,10 @@ class WebhookController extends Controller
 // Проверка уникального идентификатора
 
         try {
+//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, print_r($_POST, true));
+//
+//            return;
+
 
             $this->response()->send(
                 json_encode(['status' => 'success']),
@@ -77,8 +81,8 @@ class WebhookController extends Controller
             $amoLeadService = new AmoLeadService($accessToken);
             $amoNoteService = new AmoNoteService($accessToken);
             $result = $amoLeadService->doHookData($leadID, $hookDataDTO);
-            //  $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод полей сделки" . print_r($result, true));
-            //  return;
+//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод полей сделки" . print_r($result, true));
+//            return;
             if (isset($result['status']) && $result['status'] >= 400) {
                 $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
                 $resultNode = $amoNoteService->editCreatedReserveInfo($hookDataDTO->getLeadId());
@@ -180,7 +184,7 @@ class WebhookController extends Controller
             }
 
 
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод: конец выполнение хука");
+            //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод: конец выполнение хука");
 
 
             $this->response()->send(

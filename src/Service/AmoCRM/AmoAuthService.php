@@ -87,6 +87,10 @@ class AmoAuthService
 
         // Если в запросе нет кода авторизации, показываем кнопку
         if (!isset($_GET['code'])) {
+            if (file_exists(AMO_TOKEN_FILE)) {
+                unlink(AMO_TOKEN_FILE);
+            }
+
             $this->showAuthButton();
             return null;
         }
@@ -127,10 +131,6 @@ class AmoAuthService
      */
     private function showAuthButton(): void
     {
-
-        if (file_exists(AMO_TOKEN_FILE)) {
-            unlink(AMO_TOKEN_FILE);
-        }
 
 
         // Генерация уникального состояния для защиты от CSRF атак

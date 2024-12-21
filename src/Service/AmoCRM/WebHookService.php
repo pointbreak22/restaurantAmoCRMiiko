@@ -5,8 +5,8 @@ namespace App\Service\AmoCRM;
 
 use Exception;
 
-define('AMO_WEBHOOK_FILE', APP_PATH . '/var/tmp/webhook2.log');
-define('AMO_WEBHOOK_FILE_LEADS', APP_PATH . '/var/tmp/webhook_leads.log');
+define('AMO_WEBHOOK_FILE', APP_PATH . '/var/webhook/webhook.log');
+define('AMO_WEBHOOK_FILE_LEADS', APP_PATH . '/var/webhook/webhook_leads.log');
 
 
 class WebHookService
@@ -44,7 +44,7 @@ class WebHookService
         }
 
         // Возвращаем ответ
-        http_response_code(200);
+      
         return $leadId;
     }
 
