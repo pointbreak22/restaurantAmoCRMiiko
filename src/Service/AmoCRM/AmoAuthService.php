@@ -44,7 +44,7 @@ class AmoAuthService
             'clientId' => AMO_CLIENT_ID,
             'clientSecret' => AMO_CLIENT_SECRET,
             //  'redirectUri' =>    AMO_REDIRECT_URI,
-            'redirectUri' => "https://" . HOST_SERVER . "/auth/callback"
+            'redirectUri' => "https://" . HOST_SERVER . "auth/callback"
 
         ]);
 
@@ -217,7 +217,7 @@ class AmoAuthService
             'clientId' => AMO_CLIENT_ID,
             'clientSecret' => AMO_CLIENT_SECRET,
             //   'redirectUri' => AMO_REDIRECT_URI,
-            'redirectUri' => "https://" . HOST_SERVER . "/auth/callback"
+            'redirectUri' => "https://" . HOST_SERVER . "auth/callback"
         ]);
         // dd($provider);
 

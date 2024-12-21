@@ -22,9 +22,13 @@ try {
     define("AMO_CLIENT_ID", $_SERVER['AMO_CLIENT_ID']);
     define("AMO_CLIENT_SECRET", $_SERVER['AMO_CLIENT_SECRET']);
 
-    //define("AMO_REDIRECT_URI", $_SERVER['AMO_REDIRECT_URI']);
 
-    define("HOST_SERVER", $_SERVER['HTTP_X_FORWARDED_HOST']);
+    define("HOST_SERVER", $_SERVER['SERVER_NAME'] . $_SERVER['REDIRECT_URL']);
+
+
+    //  dd(HOST_SERVER);
+
+    //define("HOST_SERVER", $_SERVER['HTTP_X_FORWARDED_HOST']);
     define("BASE_DOMAIN", $_SERVER['BASE_DOMAIN']);
 
 
