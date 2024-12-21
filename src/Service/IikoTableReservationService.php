@@ -3,14 +3,12 @@
 namespace App\Service;
 
 
-use App\DTO\CustomerDTO;
-use App\DTO\HookDataDTO;
 use App\Repository\IIKO\Reservation\AvailableRestaurantSectionsRepository;
-use App\Repository\IIKO\Reservation\CustomerRepository;
 use App\Repository\IIKO\Reservation\OrganizationRepository;
 use App\Repository\IIKO\Reservation\TableRepository;
 use App\Repository\IIKO\Reservation\TerminalGroupRepository;
-use App\Service\IIKO\Core\IikoTokenService;
+use Exception;
+
 
 /**
  * step: инициализация подключение (получения токена)
@@ -41,7 +39,7 @@ class IikoTableReservationService
 
     /**
      * Главная функция резервации стола
-     * @throws \Exception
+     * @throws Exception
      */
     public function execute(HookDataDTO $hookDataDTO)
     {
@@ -56,6 +54,8 @@ class IikoTableReservationService
             return $tokenResult;
         }
 
+
+        // return ['httpCode'=>200, 'response' => $tokenResult['response']];
 
         //////!!!!!!!!
         // return [$name, $email, $phone, $dateVisit, $durationInMinutes, $banketName];

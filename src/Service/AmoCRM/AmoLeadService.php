@@ -28,7 +28,7 @@ class AmoLeadService
     /**
      * @throws Exception
      */
-    public function doHookData($leadId, $hookDataDTO)
+    public function doHookData($leadId, $hookDataDTO): array
     {
 
         $leadResponse = $this->getLeadById($leadId);

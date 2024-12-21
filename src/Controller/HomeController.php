@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+
 use App\DTO\HookDataDTO;
 use App\Kernel\Controller\Controller;
 use App\Service\AmoCRM\AmoAuthService;
 use App\Service\IIKO\Core\IikoTokenService;
 use App\Service\IikoTableReservationService;
+use Exception;
 use Random\RandomException;
 
 
 class HomeController extends Controller
 {
+
+
     private IikoTableReservationService $reservationService;
     private AmoAuthService $amoAuthService;
 
@@ -25,7 +29,7 @@ class HomeController extends Controller
 
     /**
      * @throws RandomException
-     * @throws \Exception
+     * @throws Exception
      */
     public function index(): void
     {
@@ -61,7 +65,7 @@ class HomeController extends Controller
 
 
         $hookDataDTO = new HookDataDTO();
-        $hookDataDTO->setDataReserve('2024-12-20 14:15:22.123',);
+        $hookDataDTO->setDataReserve('2024-12-20 14:15:22.123');
         $hookDataDTO->setTimeReserve('180');
         $hookDataDTO->setCountPeople('4');
         $hookDataDTO->setNameReserve("Знахарь");
