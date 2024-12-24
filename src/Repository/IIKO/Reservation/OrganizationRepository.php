@@ -20,10 +20,8 @@ class OrganizationRepository extends MainRepository //available_restaurant_secti
     public function get($apiToken)
     {
         $params = [
-            //'organizationIds' => [],  //cec5c046-3821-4b67-b24d-3630d46b29f1 497f6eca-6276-4993-bfeb-53cbbbba6f08
             "returnAdditionalInfo" => true,
             //   "includeDisabled" => true,
-            //"returnExternalData" => ["string"]
         ];
 
         return $this->request($this->method, $params, $apiToken);

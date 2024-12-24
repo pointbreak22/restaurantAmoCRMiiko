@@ -28,7 +28,6 @@ class WebHookService
                 $this->logToFile(AMO_WEBHOOK_FILE, $e->getMessage());
             }
 
-
         } elseif (isset($data["leads"]["add"][0]['custom_fields'])) {
             try {
                 //       $this->setHookValues($data["leads"]["add"][0]['custom_fields'], $this->hookDataDTO);
@@ -42,9 +41,6 @@ class WebHookService
         } else {
             $this->logToFile(AMO_WEBHOOK_FILE, 'No leads data found in the request.');
         }
-
-        // Возвращаем ответ
-      
         return $leadId;
     }
 
@@ -57,7 +53,6 @@ class WebHookService
             mkdir(dirname($filename), 0777, true); // Создаем директорию с правами 0777
         }
         file_put_contents($filename, $logMessage, FILE_APPEND | LOCK_EX);
-
 
     }
 

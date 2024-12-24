@@ -69,7 +69,6 @@ class IikoTokenService
             return $result;
         }
 
-
         $this->setFileToken($result['data']);
         return $result['data'];
 
@@ -82,7 +81,6 @@ class IikoTokenService
     {// Проверяем, существует ли файл
         if (!file_exists(IIKO_TOKEN_FILE)) {
             // Выбрасываем исключение или возвращаем ошибку, если файл не существует
-
             return $this->getNewApiToken();
         }
         // Если файл существует, читаем его содержимое
@@ -90,20 +88,15 @@ class IikoTokenService
         // Преобразуем содержимое в массив
         $tokenData = unserialize(json_decode($fileContent, true));
         if (empty($tokenData)) {
-
             //dd(empty($tokenData));
             $tokenData = $this->getNewApiToken();
         }
-
 
         return $tokenData;
     }
 
     private function setFileToken($data): void
-    {//   dd(APP_PATH . '/var/tmp/' . $fileName);
-
-        // $filePath = APP_PATH . '/var/tmp/' . $fileName;
-
+    {
         // Проверяем, существует ли файл
         if (!file_exists(IIKO_TOKEN_FILE)) {
             // Если файл не существует, создаем его с нужными правами

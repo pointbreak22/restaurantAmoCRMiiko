@@ -11,8 +11,6 @@ class IikoHttpClient
     public function execute(string $apiUrl, string $apiMethod, $apiToken = '', array $params = []): array
     {
 
-//        dd($url, $headers, $params);
-
         try {
             $url = $apiUrl . $apiMethod;
 
@@ -38,10 +36,8 @@ class IikoHttpClient
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
             }
 
-
             // Execute the cURL request
             $response = curl_exec($ch);
-
 
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
@@ -52,9 +48,7 @@ class IikoHttpClient
             }
             curl_close($ch);
 
-
             $arrayList = json_decode($response, true);
-            //    dd($httpCode);
 
             return ['status' => $httpCode, 'data' => $arrayList];
 

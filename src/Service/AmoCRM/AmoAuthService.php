@@ -29,7 +29,7 @@ class AmoAuthService
             session_start();
         }
 
-        //$this->initializeProvider();
+
     }
 
     /**
@@ -132,7 +132,6 @@ class AmoAuthService
     private function showAuthButton(): void
     {
 
-
         // Генерация уникального состояния для защиты от CSRF атак
         $_SESSION['oauth2state'] = bin2hex(random_bytes(16));
 
@@ -161,7 +160,6 @@ class AmoAuthService
     public function callback(): Response
     {
 
-
         // Получаем параметры из запроса
         $code = $_GET['code'] ?? null;
         $state = $_GET['state'] ?? null;
@@ -188,7 +186,6 @@ class AmoAuthService
             return new Response('Error processing authorization: ' . $e->getMessage(), 500);
         }
 
-
         header('Location: ' . APP_PROJECT);
         exit;
     }
@@ -198,15 +195,8 @@ class AmoAuthService
      */
     private function processAuthorizationCode(string $code, ?string $referer): void
     {
-
-
         $provider = $this->initializeProvider2($referer);
-        // dd($accessToken);
-
-        //      dd(AMO_CLIENT_ID, AMO_CLIENT_SECRET);
-        // Получаем токен с использованием авторизационного кода
         $accessToken = $provider->getAccessToken(new AuthorizationCode(), ['code' => $code]);
-
 
         // Сохранение токена
         $this->saveToken([
@@ -222,7 +212,6 @@ class AmoAuthService
         $provider = new AmoCRM([
             'clientId' => AMO_CLIENT_ID,
             'clientSecret' => AMO_CLIENT_SECRET,
-            //   'redirectUri' => AMO_REDIRECT_URI,
             'redirectUri' => "https://" . APP_URL . APP_PROJECT . "/auth/callback"
         ]);
         //  dd($provider);
@@ -242,7 +231,6 @@ class AmoAuthService
     private function displayAccountInfo(AccessToken $accessToken): void
     {
 
-//        dd($accessToken);
         try {
             $data = $this->provider->getHttpClient()
                 ->request('GET', $this->provider->urlAccount() . 'api/v2/account', [
@@ -251,8 +239,6 @@ class AmoAuthService
 
 
             $parsedBody = json_decode($data->getBody()->getContents(), true);
-
-            //  dd($accessToken);
 
             printf('Вы успешно авторизированны в AmoCRM, ID аккаунта - %s, название - %s', $parsedBody['id'], $parsedBody['name']);
             printf('<br><br>' . $accessToken->getToken());
@@ -295,9 +281,7 @@ class AmoAuthService
         if (!file_exists(AMO_TOKEN_FILE)) {
             return null;  // Токен не найден
         }
-
         $accessToken = json_decode(file_get_contents(AMO_TOKEN_FILE), true);
-
         if (
             isset($accessToken['accessToken']) && isset($accessToken['refreshToken']) && isset($accessToken['expires']) && isset($accessToken['baseDomain'])
         ) {

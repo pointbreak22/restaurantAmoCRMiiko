@@ -11,7 +11,6 @@ class AmoLeadService
 
     private AccessToken $accessToken;
     private string $baseUrl;
-
     private AmoRequestService $amoRequestService;
     private WebHookService $webhookService;
 
@@ -23,7 +22,6 @@ class AmoLeadService
         $this->baseUrl = "https://{$accessToken->getValues()['baseDomain']}";
         $this->webhookService = new WebhookService();
     }
-
 
     /**
      * @throws Exception
@@ -37,32 +35,17 @@ class AmoLeadService
         }
         //Вывод полей сделки
         //  return $leadResponse;
-
-
         $leadArray = $leadResponse['data']['custom_fields_values'];
-
         $this->writeLeadToHookData($leadArray, $hookDataDTO);
-
-        // return $leadArray;
-
         $contactId = $leadResponse['data']['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
-
         $contactResponse = $this->getContactsByIds($contactId); // Получаем подробности о контактах
-
         if ($contactResponse['status'] >= 400) {
             return $contactResponse;
-
         }
-
         $contactName = $contactResponse['data']['name'];
         $hookDataDTO->setContactName($contactName);
-
         $contactArray = $contactResponse['data']['custom_fields_values'];
-
         $this->writeContactToHookData($contactArray, $hookDataDTO);
-
-
-        // return $leadArray;
         return ['status' => 200, 'data' => "Успешное заполнение хука"];
     }
 
@@ -73,7 +56,6 @@ class AmoLeadService
     {
         try {
 
-
             $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
 
             $createdReserve = $this->getCreatedReserve($data, $amoFieldsConfig['createReserveField']);
@@ -83,41 +65,28 @@ class AmoLeadService
             $nameReserve = $this->getNameReserve($data, $amoFieldsConfig['nameReserveField']);
             $IdReserve = $this->getIdReserve($data, $amoFieldsConfig['idReserveField']);
 
-            // if (!empty($dateReserve) && !empty($timeReserve)) {
-            $date = DateTime::createFromFormat('U.u', $dateReserve . '.0');//->setTime(0, 0, 0);
-            // Форматируем в нужный вид
-            $pattern = '/с (\d{1,2}:\d{2}) до (\d{1,2}:\d{2})/';
-            $formattedDate = $date->format('Y-m-d H:i:s.v'); //13384888885
+            if (!empty($dateReserve) && !empty($timeReserve)) {
+                $date = DateTime::createFromFormat('U.u', $dateReserve . '.0');//->setTime(0, 0, 0);
+                $pattern = '/с (\d{1,2}:\d{2}) до (\d{1,2}:\d{2})/';
+                $formattedDate = $date->format('Y-m-d H:i:s.v'); //13384888885
+                preg_match($pattern, $timeReserve, $matches);
 
-            preg_match($pattern, $timeReserve, $matches);
+                // Получаем начало и конец периода
+                $startTime = $matches[1]; // Например, "07:00"
+                $endTime = $matches[2];   // Например, "9:00"
 
+                // Создаем объекты DateTime для начала и конца периода
+                $startDateTime = clone $date;
+                $endDateTime = clone $date;
 
-            // Получаем начало и конец периода
-            $startTime = $matches[1]; // Например, "07:00"
-            $endTime = $matches[2];   // Например, "9:00"
+                $startDateTime->modify($startTime);
+                $endDateTime->modify($endTime);
 
+                $durationInMinutes = ($endDateTime->getTimestamp() - $startDateTime->getTimestamp()) / 60;
 
-            // Создаем объекты DateTime для начала и конца периода
-            $startDateTime = clone $date;
-            $endDateTime = clone $date;
-
-            $startDateTime->modify($startTime);
-            $endDateTime->modify($endTime);
-
-
-            // Вычисляем разницу в минутах
-            //    $timeDifference = ($endDateTime->getTimestamp() - $startDateTime->getTimestamp()) / 60;
-
-            $durationInMinutes = ($endDateTime->getTimestamp() - $startDateTime->getTimestamp()) / 60;
-
-//
-//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "-1-: " . $startDateTime->format('Y-m-d H:i:s.v'));
-//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "-2-: " . $durationInMinutes);
-//
-
-            $hookDataDTO->setDataReserve($startDateTime->format('Y-m-d H:i:s.v'));
-            $hookDataDTO->setTimeReserve($durationInMinutes);
-            //    }
+                $hookDataDTO->setDataReserve($startDateTime->format('Y-m-d H:i:s.v'));
+                $hookDataDTO->setTimeReserve($durationInMinutes);
+            }
 
             $hookDataDTO->setCreatedReserve($createdReserve);
             $hookDataDTO->setCountPeople($countPeople);
@@ -126,52 +95,101 @@ class AmoLeadService
 
         } catch (Exception $e) {
             $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод ошибки: " . print_r($hookDataDTO, true));
-
         }
-
     }
-
 
     private function writeContactToHookData($data, $hookDataDTO): void
     {
         try {
-
             foreach ($data as $item) {
-                //   $hookData[$item['id']] = $item['values'];
-
                 if ($item['field_code'] == 'EMAIL') {
                     $hookDataDTO->setContactEmail($item['values'][0]['value']);
-
                 }
                 if ($item['field_code'] == 'PHONE') {
                     $hookDataDTO->setContactPhone($item['values'][0]['value']);
-
                 }
             }
         } catch (Exception $e) {
             $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод ошибки: " . print_r($hookDataDTO, true));
-
         }
     }
 
     private function getLeadById($leadId): array
     {
         $url = "{$this->baseUrl}/api/v4/leads/{$leadId}?with=contacts";
-
         $response = $this->amoRequestService->makeRequest('GET', $url, $this->accessToken);
-
         return $response;
     }
 
     private function getContactsByIds($contactId): array
     {
-        // $ids = implode(',', $contactIds); // Формируем строку с ID через запятую
+
         $url = "{$this->baseUrl}/api/v4/contacts/{$contactId}";
-
         $response = $this->amoRequestService->makeRequest('GET', $url, $this->accessToken);
-
-
         return $response;
+    }
+
+    public function addNoteToLead(int $leadId, string $text): mixed
+    {
+        //   return [$leadId, $text];
+        $url = "{$this->baseUrl}/api/v4/leads/notes";
+
+        // Формирование данных примечания
+        $data = [
+            [
+                "entity_id" => $leadId,
+                "note_type" => "common", // Тип примечания (обычное текстовое примечание)
+                "params" => [
+                    "text" => $text
+                ],
+
+            ]
+        ];
+
+        // Отправка POST-запроса
+        return $this->amoRequestService->makeRequest('POST', $url, $this->accessToken, $data);
+    }
+
+    public function editReserveInfo(int $leadId, string $value): mixed
+    {
+        $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
+        $url = "{$this->baseUrl}/api/v4/leads/{$leadId}?disable_webhooks=1";
+        $data = [
+            'custom_fields_values' => [
+                [
+                    'field_id' => (int)$amoFieldsConfig['idReserveField'],
+                    'values' => [
+                        ['value' => $value !== null ? $value : 'Default Value'] // Установка текстового значения
+
+                    ]
+                ]
+            ],
+            'request_id' => uniqid(), // Уникальный идентификатор запроса
+
+        ];
+        return $this->amoRequestService->makeRequest('PATCH', $url, $this->accessToken, $data);
+    }
+
+
+    public function editCreatedReserveInfo(int $leadId): mixed
+    {
+        $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
+
+        $url = "{$this->baseUrl}/api/v4/leads/{$leadId}?disable_webhooks=1";
+        $data = [
+            'custom_fields_values' => [
+                [
+                    'field_id' => (int)$amoFieldsConfig['createReserveField']['id'],
+                    'values' => [
+                        ['enum_id' => (int)$amoFieldsConfig['createReserveField']['No']] // Установка текстового значения
+
+                    ]
+                ]
+            ],
+            'request_id' => uniqid(), // Уникальный идентификатор запроса
+        ];
+
+        return $this->amoRequestService->makeRequest('PATCH', $url, $this->accessToken, $data);
     }
 
 
@@ -183,12 +201,10 @@ class AmoLeadService
                 if ($item['values'][0]['enum_id'] == $createReserveField['Yes'])
                     $createdReserve = true;
                 break;
-
             }
         }
         return $createdReserve;
     }
-
 
     private function getValueReserve($data, $inputField): bool
     {
@@ -199,12 +215,9 @@ class AmoLeadService
                 $fieldValue = $item['values'][0]['value'];  // Извлекаем значение
                 break;  // Прерываем цикл, так как мы нашли нужный элемент
             }
-
         }
         return $fieldValue;
-
     }
-
 
     private function getDateReserve($data, mixed $dataReserveField)
     {
@@ -214,10 +227,8 @@ class AmoLeadService
                 $dateReserve = $item['values'][0]['value'];  // Извлекаем значение
                 break;  // Прерываем цикл, так как мы нашли нужный элемент
             }
-
         }
         return $dateReserve;
-
     }
 
     private function getCountPeople($data, mixed $countPeopleField)
@@ -228,10 +239,8 @@ class AmoLeadService
                 $countPeople = $item['values'][0]['value'];  // Извлекаем значение
                 break; // Прерываем цикл, так как мы нашли нужный элемент
             }
-
         }
         return $countPeople;
-
     }
 
     private function getTimeReserve($data, mixed $timeReserveField)
@@ -242,10 +251,8 @@ class AmoLeadService
                 $timeReserve = $item['values'][0]['value'];  // Извлекаем значение
                 break;  // Прерываем цикл, так как мы нашли нужный элемент
             }
-
         }
         return $timeReserve;
-
     }
 
     private function getNameReserve($data, mixed $nameReserveField)
@@ -258,9 +265,7 @@ class AmoLeadService
             }
         }
         return $nameReserve;
-
     }
-
 
     private function getIdReserve($data, mixed $idReserveField)
     {
@@ -272,7 +277,5 @@ class AmoLeadService
             }
         }
         return $idReserve;
-
     }
-
 }

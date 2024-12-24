@@ -23,7 +23,6 @@ class HookDataDTO
         $this->idReserve = $idReserve;
     }
 
-
     public function isCreatedReserve(): bool
     {
         return $this->createdReserve;
