@@ -123,7 +123,6 @@ class AmoLeadService
 
     private function getContactsByIds($contactId): array
     {
-
         $url = "{$this->baseUrl}/api/v4/contacts/{$contactId}";
         $response = $this->amoRequestService->makeRequest('GET', $url, $this->accessToken);
         return $response;
@@ -131,7 +130,7 @@ class AmoLeadService
 
     public function addNoteToLead(int $leadId, string $text): mixed
     {
-        //   return [$leadId, $text];
+
         $url = "{$this->baseUrl}/api/v4/leads/notes";
 
         // Формирование данных примечания
@@ -206,7 +205,7 @@ class AmoLeadService
         return $createdReserve;
     }
 
-    private function getValueReserve($data, $inputField): bool
+    private function getValueReserve($data, mixed $inputField): mixed
     {
 
         $fieldValue = "";

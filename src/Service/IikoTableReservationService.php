@@ -221,11 +221,8 @@ class IikoTableReservationService
      */
     private function getCustomer($organizationId, $phone, $name, $email, $tokenResult): mixed
     {
-
-
         $phone = str_starts_with($phone, "+") ? $phone : "+" . $phone;
         $customerDTO = $this->customerRepository->get($organizationId, $phone, $tokenResult);
-
 
         if ($customerDTO == null) {
 

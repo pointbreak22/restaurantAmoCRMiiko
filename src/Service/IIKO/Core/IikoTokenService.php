@@ -57,7 +57,6 @@ class IikoTokenService
         return $result['token'];
     }
 
-
     /**
      * @throws Exception
      */
