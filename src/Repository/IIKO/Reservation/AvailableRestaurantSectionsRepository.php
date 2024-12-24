@@ -16,15 +16,12 @@ class AvailableRestaurantSectionsRepository extends MainRepository
         parent::__construct();
     }
 
-    public function get($terminalGroupIds)
+    public function get($terminalGroupIds, $apiToken)
     {
         $params = [
-            'terminalGroupIds' => $terminalGroupIds,  //cec5c046-3821-4b67-b24d-3630d46b29f1 497f6eca-6276-4993-bfeb-53cbbbba6f08
-            //    "returnSchema" => true,
-            //  "revision" => 0,
-
+            'terminalGroupIds' => $terminalGroupIds,
         ];
 
-        return $this->request($this->method, $params);
+        return $this->request($this->method, $params, $apiToken);
     }
 }

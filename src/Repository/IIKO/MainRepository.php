@@ -2,22 +2,23 @@
 
 namespace App\Repository\IIKO;
 
-use App\Service\IIKO\Core\IikoApiService;
+
+use App\Service\IIKO\Core\IikoHttpClient;
 
 class MainRepository
 {
     private $url = 'https://api-ru.iiko.services';
 
-    private IikoApiService $apiService;
+    private IikoHttpClient $httpClient;
 
     public function __construct()
     {
-        $this->apiService = new IikoApiService();
+        $this->httpClient = new IikoHttpClient();
     }
 
-    protected function request(string $method, mixed $params = []): array
+    protected function request(string $method, mixed $params = [], $apiToken = ''): array
     {
 
-        return $this->apiService->execute($this->url, $method, $params);
+        return $this->httpClient->execute($this->url, $method, $apiToken, $params);
     }
 }

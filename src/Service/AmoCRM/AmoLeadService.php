@@ -83,24 +83,41 @@ class AmoLeadService
             $nameReserve = $this->getNameReserve($data, $amoFieldsConfig['nameReserveField']);
             $IdReserve = $this->getIdReserve($data, $amoFieldsConfig['idReserveField']);
 
-            if (!empty($dateReserve) && !empty($timeReserve)) {
-                $date = DateTime::createFromFormat('U.u', $dateReserve . '.0')->setTime(0, 0, 0);
-                // Форматируем в нужный вид
-                $formattedDate = $date->format('Y-m-d H:i:s.v');
+            // if (!empty($dateReserve) && !empty($timeReserve)) {
+            $date = DateTime::createFromFormat('U.u', $dateReserve . '.0');//->setTime(0, 0, 0);
+            // Форматируем в нужный вид
+            $pattern = '/с (\d{1,2}:\d{2}) до (\d{1,2}:\d{2})/';
+            $formattedDate = $date->format('Y-m-d H:i:s.v'); //13384888885
 
-                preg_match('/с (\d{2}:\d{2}) до (\d{2}:\d{2})/', $timeReserve, $matches);
-                $startTime = $matches[1]; // 14:00
-                $endTime = $matches[2];   // 16:00
-                $datetime = new DateTime($formattedDate);
-                $datetime->setTime((int)substr($startTime, 0, 2), (int)substr($startTime, 3, 2));
-                $startTimeMinutes = (int)substr($startTime, 0, 2) * 60 + (int)substr($startTime, 3, 2);
-                $endTimeMinutes = (int)substr($endTime, 0, 2) * 60 + (int)substr($endTime, 3, 2);
-                $timeDifference = $endTimeMinutes - $startTimeMinutes;
+            preg_match($pattern, $timeReserve, $matches);
 
 
-                $hookDataDTO->setDataReserve($datetime->format('Y-m-d H:i:s.v'));
-                $hookDataDTO->setTimeReserve($timeDifference);
-            }
+            // Получаем начало и конец периода
+            $startTime = $matches[1]; // Например, "07:00"
+            $endTime = $matches[2];   // Например, "9:00"
+
+
+            // Создаем объекты DateTime для начала и конца периода
+            $startDateTime = clone $date;
+            $endDateTime = clone $date;
+
+            $startDateTime->modify($startTime);
+            $endDateTime->modify($endTime);
+
+
+            // Вычисляем разницу в минутах
+            //    $timeDifference = ($endDateTime->getTimestamp() - $startDateTime->getTimestamp()) / 60;
+
+            $durationInMinutes = ($endDateTime->getTimestamp() - $startDateTime->getTimestamp()) / 60;
+
+//
+//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "-1-: " . $startDateTime->format('Y-m-d H:i:s.v'));
+//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "-2-: " . $durationInMinutes);
+//
+
+            $hookDataDTO->setDataReserve($startDateTime->format('Y-m-d H:i:s.v'));
+            $hookDataDTO->setTimeReserve($durationInMinutes);
+            //    }
 
             $hookDataDTO->setCreatedReserve($createdReserve);
             $hookDataDTO->setCountPeople($countPeople);

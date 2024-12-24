@@ -21,8 +21,6 @@ class IikoTokenService
     function __construct()
     {
         $this->tokenRepository = new TokenRepository();
-
-
     }
 
     /**

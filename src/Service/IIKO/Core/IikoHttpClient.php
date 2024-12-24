@@ -8,12 +8,18 @@ class IikoHttpClient
 {
     private array $headers = ['Content-Type: application/json', 'Accept: application/json'];
 
-    public function execute(string $url, array $headers = [], array $params = []): array
+    public function execute(string $apiUrl, string $apiMethod, $apiToken = '', array $params = []): array
     {
 
 //        dd($url, $headers, $params);
 
         try {
+            $url = $apiUrl . $apiMethod;
+
+            $headers = [];
+            if (!isset($params['apiLogin'])) {
+                $headers = ['Authorization: Bearer ' . $apiToken];
+            }
             // Prepare headers
             $headers = array_merge($this->headers, $headers);
 

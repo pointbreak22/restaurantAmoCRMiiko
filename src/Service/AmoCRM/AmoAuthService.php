@@ -87,9 +87,9 @@ class AmoAuthService
 
         // Если в запросе нет кода авторизации, показываем кнопку
         if (!isset($_GET['code'])) {
-            if (file_exists(AMO_TOKEN_FILE)) {
-                unlink(AMO_TOKEN_FILE);
-            }
+//            if (file_exists(AMO_TOKEN_FILE)) {
+//                unlink(AMO_TOKEN_FILE);
+//            }
 
             $this->showAuthButton();
             return null;
@@ -121,7 +121,7 @@ class AmoAuthService
             return $accessToken;
 
         } catch (Exception $e) {
-            die((string)$e);
+            die($e->getMessage());
         }
     }
 
@@ -199,9 +199,11 @@ class AmoAuthService
     private function processAuthorizationCode(string $code, ?string $referer): void
     {
 
+
         $provider = $this->initializeProvider2($referer);
+        // dd($accessToken);
 
-
+        //      dd(AMO_CLIENT_ID, AMO_CLIENT_SECRET);
         // Получаем токен с использованием авторизационного кода
         $accessToken = $provider->getAccessToken(new AuthorizationCode(), ['code' => $code]);
 
@@ -223,7 +225,7 @@ class AmoAuthService
             //   'redirectUri' => AMO_REDIRECT_URI,
             'redirectUri' => "https://" . APP_URL . APP_PROJECT . "/auth/callback"
         ]);
-        // dd($provider);
+        //  dd($provider);
 
         if ($referer) {
             $provider->setBaseDomain($referer);
@@ -239,6 +241,8 @@ class AmoAuthService
      */
     private function displayAccountInfo(AccessToken $accessToken): void
     {
+
+//        dd($accessToken);
         try {
             $data = $this->provider->getHttpClient()
                 ->request('GET', $this->provider->urlAccount() . 'api/v2/account', [
@@ -251,6 +255,7 @@ class AmoAuthService
             //  dd($accessToken);
 
             printf('Вы успешно авторизированны в AmoCRM, ID аккаунта - %s, название - %s', $parsedBody['id'], $parsedBody['name']);
+            printf('<br><br>' . $accessToken->getToken());
         } catch (GuzzleException $e) {
             var_dump((string)$e);
         }

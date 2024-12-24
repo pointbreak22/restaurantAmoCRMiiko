@@ -21,28 +21,33 @@ class CustomerRepository extends MainRepository //available_restaurant_sections
         parent::__construct();
     }
 
-    public function get(string $organizationId, string $value, string $type = 'phone'): ?CustomerDTO
+    public function get(string $organizationId, string $value, $apiToken = '', string $type = 'phone'): mixed
     {
-        return $this->response(result: $this->request($this->getMethod, [
+        $params = [
             $type => $value,
             "type" => $type,
             "organizationId" => $organizationId
-        ]), organizationId: $organizationId);
+        ];
+
+
+        $result = $this->request($this->getMethod, $params, $apiToken);
+        return $this->response(result: $result, organizationId: $organizationId);
     }
 
-    public function set(CustomerDTO $customerDTO)
+    public function set(CustomerDTO $customerDTO, $apiToken)
     {
 
         $params = $this->toArray(customerDTO: $customerDTO);
-        $result = $this->request($this->setMethod, $params);
+        $result = $this->request($this->setMethod, $params, $apiToken);
 
 
         return $result;
     }
 
-    private function response(array $result, string $organizationId): ?CustomerDTO
+    private function response(array $result, string $organizationId): CustomerDTO|array|null
     {
-        if ($result['status'] == 400) {
+        //  return $result;
+        if ($result['status'] >= 400) {
             return null;
         } else {
             return new CustomerDTO(
@@ -83,7 +88,6 @@ class CustomerRepository extends MainRepository //available_restaurant_sections
             'userData' => $customerDTO->userData,
             'organizationId' => $customerDTO->organizationId
         ];
-
         // Удаляем ключи с пустыми или null значениями
         return array_filter($data, function ($value) {
             return $value !== null && $value !== '';
