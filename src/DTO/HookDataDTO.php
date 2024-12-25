@@ -13,6 +13,18 @@ class HookDataDTO
     private string $dataReserve = "";
     private string $idReserve = "";
 
+    private float $sumReserve = 0;
+
+    public function getSumReserve(): float
+    {
+        return $this->sumReserve;
+    }
+
+    public function setSumReserve(float $sumReserve): void
+    {
+        $this->sumReserve = $sumReserve;
+    }
+
     public function getIdReserve(): string
     {
         return $this->idReserve;

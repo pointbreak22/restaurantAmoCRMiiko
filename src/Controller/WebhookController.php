@@ -12,6 +12,7 @@ use App\Service\AmoCRM\AmoAuthService;
 use App\Service\AmoCRM\AmoLeadService;
 use App\Service\AmoCRM\WebHookService;
 use App\Service\IikoTableReservationService;
+use App\Service\LoggingService;
 use Exception;
 
 //use App\Service\AmoCRM\AmoNoteService;
@@ -30,9 +31,8 @@ class WebhookController extends Controller
     {
         $this->webhookService = new WebhookService();
         $this->amoAuthService = new AmoAuthService();
+
         $this->ikoTableReservationService = new IikoTableReservationService();
-
-
     }
 
     /**
@@ -46,7 +46,6 @@ class WebhookController extends Controller
             $leadID = $this->webhookService->getLeadId();
             if (empty($leadID)) {
                 throw new Exception("Статус ошибка: отсутствует id сделки");
-
             }
             $hookDataDTO->setLeadId($leadID);
 
@@ -62,13 +61,16 @@ class WebhookController extends Controller
                 throw new Exception("Статус ошибка: отсутствует авторизация");
             }
             $amoLeadService = new AmoLeadService($accessToken);
-            //    $amoNoteService = new AmoNoteService($accessToken);
             $result = $amoLeadService->doHookData($leadID, $hookDataDTO);
-//            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод полей сделки" . print_r($hookDataDTO, true));
-//            return;
+            //  LoggingService::save($result, "info", "webhook");
+
+            //  return;
             if (isset($result['status']) && $result['status'] >= 400) {
-                $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Error" . print_r($result, true));
-                throw new Exception("Ошибка: " . print_r($result, true));
+
+
+                LoggingService::save($result, "Error", "webhook");
+                exit;
+
             }
             if (!$hookDataDTO->isCreatedReserve()) {
                 $this->response()->send(
@@ -96,7 +98,6 @@ class WebhookController extends Controller
                 $resultNode = $amoLeadService->editCreatedReserveInfo($hookDataDTO->getLeadId());
                 throw new Exception("Статус ошибка:  дата или время резерва не установлено--" . $hookDataDTO->getDataReserve() . "--" . $hookDataDTO->getTimeReserve());
             }
-
 
             if (!empty($hookDataDTO->getIdReserve())) {
 
@@ -154,14 +155,13 @@ class WebhookController extends Controller
                 $resultNode = $amoLeadService->addNoteToLead($hookDataDTO->getLeadId(), "Ошибка IIKO, статус " . $result['status'] . " ошибка " . $errorMessage);
                 if (isset($resultNode['status']) && $resultNode['status'] >= 400) {
                     throw new Exception("Ошибка: " . print_r($resultNode, true));
-
                 }
                 $resultNode = $amoLeadService->editCreatedReserveInfo($hookDataDTO->getLeadId());
+                if (isset($resultNode['status']) && $resultNode['status'] >= 400) {
+                    throw new Exception("Ошибка: " . print_r($resultNode, true));
+
+                }
             }
-
-
-            //   $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод: конец выполнение хука");
-
 
             $this->response()->send(
                 json_encode(['status' => 'success']),
@@ -174,8 +174,9 @@ class WebhookController extends Controller
                 200,
                 ['Content-Type: application/json'],
             );
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Статус ошибка: " . $exception->getMessage());
+            LoggingService::save($exception->getMessage(), "Error", "webhook");
             exit;
+
         }
 
     }

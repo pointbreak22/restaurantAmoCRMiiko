@@ -10,6 +10,7 @@ use App\Repository\IIKO\Reservation\AvailableRestaurantSectionsRepository;
 use App\Repository\IIKO\Reservation\CustomerRepository;
 use App\Repository\IIKO\Reservation\MenuRepository;
 use App\Repository\IIKO\Reservation\OrganizationRepository;
+use App\Repository\IIKO\Reservation\PaymentRepository;
 use App\Repository\IIKO\Reservation\ReserveRepository;
 use App\Repository\IIKO\Reservation\TerminalGroupRepository;
 use App\Service\IIKO\Core\IikoTokenService;
@@ -35,6 +36,8 @@ class IikoTableReservationService
 
     private MenuRepository $menuRepository;
 
+    private PaymentRepository $paymentRepository;
+
     function __construct()
     {
         $this->organizationRepository = new OrganizationRepository();
@@ -44,6 +47,7 @@ class IikoTableReservationService
         $this->tableRepository = new ReserveRepository();
         $this->iikoTokenService = new IikoTokenService();
         $this->menuRepository = new MenuRepository();
+        $this->paymentRepository = new PaymentRepository();
     }
 
     /**
@@ -103,6 +107,19 @@ class IikoTableReservationService
         }
 
 
+        $paymentId = $this->getPaymentType([$organizationsId[0]], $tokenResult); // из организации получает термальную группу.
+
+
+        //  return $terminalGroupsId;
+
+        if ($this->checkValue($paymentId)) {
+            return $paymentId;
+        }
+        if (empty($paymentId)) {
+            return ['status' => 400, 'data' => "Отсутствует оплата"];
+        }
+        //  return ['status' => 400, 'data' => $paymentId];
+
         $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupsId[0]], $hookDataDTO->getNameReserve(), $tokenResult); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
         //return $tables;
 
@@ -131,15 +148,15 @@ class IikoTableReservationService
         $reserveDTO->setDurationInMinutes($hookDataDTO->getTimeReserve());
         $reserveDTO->setCustomerCount($hookDataDTO->getCountPeople());
         $reserveDTO->setProductId($productResult);
+        $reserveDTO->setSumReserve($hookDataDTO->getSumReserve());
+        $reserveDTO->setPaymentId($paymentId);
 
         $reserveInfoResult = $this->setReserve($reserveDTO, $tokenResult);
         if ($this->checkValue($reserveInfoResult)) {
             return $reserveInfoResult;
         }
         $reserveId = $reserveInfoResult['data']['reserveInfo']['id'];
-
         $reserveFullResult = $this->getReserve($organizationsId[0], [$reserveId], $tokenResult);
-
 
         return $reserveFullResult;
     }
@@ -285,6 +302,31 @@ class IikoTableReservationService
     private function getReserve($organizationsId, array $reserves, $tokenResult): array
     {
         return $this->tableRepository->get($organizationsId, $reserves, $tokenResult);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function getPaymentType($organizationsId, mixed $tokenResult): mixed
+    {
+        $result = $this->paymentRepository->get($organizationsId, $tokenResult);
+
+        if ($this->checkValue($result)) {
+            return $result;
+        }
+        $filtered = array_filter($result['data']['paymentTypes'], function ($paymentType) {
+            return isset($paymentType['code']) && $paymentType['code'] == 'SITE';
+        });
+
+        // Получаем id из первого результата (если нужно только одно значение)
+        $id = null;
+        if (!empty($filtered)) {
+            $firstResult = reset($filtered); // Берём первый элемент
+            $id = $firstResult['id'] ?? null; // Извлекаем id
+        }
+
+        return $id;
+
     }
 
 }

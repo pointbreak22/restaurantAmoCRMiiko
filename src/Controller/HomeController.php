@@ -10,6 +10,7 @@ use App\Kernel\Controller\Controller;
 use App\Service\AmoCRM\AmoAuthService;
 use App\Service\IIKO\Core\IikoTokenService;
 use App\Service\IikoTableReservationService;
+use App\Service\LoggingService;
 use Exception;
 use Random\RandomException;
 
@@ -20,6 +21,7 @@ class HomeController extends Controller
 
     private IikoTableReservationService $reservationService;
     private AmoAuthService $amoAuthService;
+
 
     function __construct()
     {
@@ -33,6 +35,10 @@ class HomeController extends Controller
      */
     public function index(): void
     {
+        LoggingService::save("errrrrrrrr", "message", "webhook");
+
+
+        exit;
 
         $result = (new IikoTokenService())->getNewToken();
 

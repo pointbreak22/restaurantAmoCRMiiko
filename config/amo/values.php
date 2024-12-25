@@ -3,14 +3,13 @@
 return [
     'dev' => [
         'custom_fields' => [
-            'dataReserveField' => '589605',
-            'countPeopleField' => '582209',
-            'timeReserveField' => '594537',
-            'nameReserveField' => '594539',
-            'createReserveField' => ['id' => '585681', 'Yes' => '931341', 'No' => '931343'],
-//            'phoneField' => '581971',
-//            'emailField' => '581973',
-            'idReserveField' => '591981',
+            'dataReserveField' => '608035',
+            'countPeopleField' => '608039',
+            'timeReserveField' => '608037',
+            'nameReserveField' => '608041',
+            'createReserveField' => ['id' => '608043', 'Yes' => '944395', 'No' => '931343'],
+            'sumReserveField' => '609127',
+            'idReserveField' => '608045',
 
 
         ],
@@ -22,9 +21,8 @@ return [
             'countPeopleField' => '921299',
             'timeReserveField' => '1006007',
             'nameReserveField' => '921327',
-            'createReserveField' => ['id' => '1022765', 'Yes' => '647711', 'No' => '647713'],
-//            'phoneField' => '581971',
-//            'emailField' => '581973',
+            'createReserveField' => ['id' => '1022765', 'Yes' => '647711', 'No' => '944397'],
+
             'idReserveField' => '1022767',
 
 

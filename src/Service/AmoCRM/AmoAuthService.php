@@ -49,9 +49,10 @@ class AmoAuthService
         ]);
 
 
-        if (isset($_GET['referer'])) {
-            $this->provider->setBaseDomain($_GET['referer']);
-        }
+//        if (isset($_GET['referer'])) {
+//            $this->provider->setBaseDomain($_GET['referer']);
+//        }
+        $this->provider->setBaseDomain($_GET['referer'] ?? BASE_DOMAIN);
 
 
     }
@@ -111,6 +112,7 @@ class AmoAuthService
 
     public function callback(): Response
     {
+
         if ($_GET['state'] !== ($_SESSION['oauth2state'] ?? '')) {
             return new Response('Invalid state.', 400);
         }
@@ -123,7 +125,7 @@ class AmoAuthService
             return new Response('Error processing authorization: ' . $e->getMessage(), 500);
         }
 
-        header('Location: ' . APP_PROJECT);
+        header('Location: ' . APP_PROJECT . '/');
         exit;
     }
 
@@ -132,15 +134,13 @@ class AmoAuthService
      */
     private function processAuthorizationCode(string $code, ?string $referer): void
     {
-
         try {
             $accessToken = $this->provider->getAccessToken(new AuthorizationCode(), ['code' => $code]);
+            $this->saveToken($accessToken);
         } catch (Exception $e) {
-            dd($e->getMessage(), $e->getCode(), $e);
+            dd($e->getMessage(), $e->getCode(), $e, $_GET['referer']);
         }
 
-
-        $this->saveToken($accessToken);
     }
 
     private function displayAccountInfo(AccessToken $accessToken): void
@@ -176,11 +176,20 @@ class AmoAuthService
     private function getToken(): ?AccessToken
     {
         if (!file_exists(AMO_TOKEN_FILE)) {
-            return null;
+            return null;  // Токен не найден
         }
-
-        $data = json_decode(file_get_contents(AMO_TOKEN_FILE), true);
-
-        return $data ? new AccessToken($data) : null;
+        $accessToken = json_decode(file_get_contents(AMO_TOKEN_FILE), true);
+        if (
+            isset($accessToken['accessToken']) && isset($accessToken['refreshToken']) && isset($accessToken['expires']) && isset($accessToken['baseDomain'])
+        ) {
+            return new AccessToken([
+                'access_token' => $accessToken['accessToken'],
+                'refresh_token' => $accessToken['refreshToken'],
+                'expires' => $accessToken['expires'],
+                'baseDomain' => $accessToken['baseDomain'],
+            ]);
+        } else {
+            return null;  // Некорректный токен
+        }
     }
 }

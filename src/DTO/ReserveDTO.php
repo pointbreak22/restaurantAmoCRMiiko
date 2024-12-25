@@ -15,6 +15,30 @@ class ReserveDTO
     private string $dateVisit;
     private string $customerCount;
 
+    private float $sumReserve;
+
+    private string $paymentId;
+
+    public function getPaymentId(): string
+    {
+        return $this->paymentId;
+    }
+
+    public function setPaymentId(string $paymentId): void
+    {
+        $this->paymentId = $paymentId;
+    }
+
+    public function getSumReserve(): float
+    {
+        return $this->sumReserve;
+    }
+
+    public function setSumReserve(float $sumReserve): void
+    {
+        $this->sumReserve = $sumReserve;
+    }
+
     public function getCustomerCount(): string
     {
         return $this->customerCount;

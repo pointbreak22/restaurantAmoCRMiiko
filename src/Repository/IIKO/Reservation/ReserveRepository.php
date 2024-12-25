@@ -44,6 +44,13 @@ class ReserveRepository extends MainRepository
                         "amount" => 1
                     ],
                 ],
+                'payments' => [[
+                    'paymentTypeKind' => "Card",
+                    'sum' => $reserve->getSumReserve(),
+                    'paymentTypeId' => $reserve->getPaymentId(),
+                ],
+
+                ]
             ],
             "customer" => $this->customerRepository->toArray($reserve->getCustomer()),
             "phone" => str_starts_with($phone, "+") ? $phone : "+" . $phone,

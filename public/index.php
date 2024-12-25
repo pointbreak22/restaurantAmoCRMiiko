@@ -25,7 +25,7 @@ try {
 
 
     //define("HOST_SERVER", $_SERVER['SERVER_NAME'] . $_SERVER['REDIRECT_URL']);
-    //dd($_SERVER);
+    // dd(APP_PROJECT);
 
     //  dd(HOST_SERVER);
 

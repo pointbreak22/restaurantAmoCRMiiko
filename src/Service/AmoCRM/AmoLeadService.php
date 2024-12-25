@@ -2,6 +2,7 @@
 
 namespace App\Service\AmoCRM;
 
+use App\Service\LoggingService;
 use DateTime;
 use Exception;
 use League\OAuth2\Client\Token\AccessToken;
@@ -12,7 +13,7 @@ class AmoLeadService
     private AccessToken $accessToken;
     private string $baseUrl;
     private AmoRequestService $amoRequestService;
-    private WebHookService $webhookService;
+
 
     function __construct($accessToken)
     {
@@ -20,7 +21,7 @@ class AmoLeadService
         $this->amoRequestService = new AmoRequestService();
         $this->accessToken = $accessToken;
         $this->baseUrl = "https://{$accessToken->getValues()['baseDomain']}";
-        $this->webhookService = new WebhookService();
+
     }
 
     /**
@@ -59,11 +60,12 @@ class AmoLeadService
             $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
 
             $createdReserve = $this->getCreatedReserve($data, $amoFieldsConfig['createReserveField']);
-            $dateReserve = $this->getDateReserve($data, $amoFieldsConfig['dataReserveField']);
-            $timeReserve = $this->getTimeReserve($data, $amoFieldsConfig['timeReserveField']);
-            $countPeople = $this->getCountPeople($data, $amoFieldsConfig['countPeopleField']);
-            $nameReserve = $this->getNameReserve($data, $amoFieldsConfig['nameReserveField']);
-            $IdReserve = $this->getIdReserve($data, $amoFieldsConfig['idReserveField']);
+            $dateReserve = $this->getValueReserve($data, $amoFieldsConfig['dataReserveField']);
+            $timeReserve = $this->getValueReserve($data, $amoFieldsConfig['timeReserveField']);
+            $countPeople = $this->getValueReserve($data, $amoFieldsConfig['countPeopleField']);
+            $nameReserve = $this->getValueReserve($data, $amoFieldsConfig['nameReserveField']);
+            $IdReserve = $this->getValueReserve($data, $amoFieldsConfig['idReserveField']);
+            $sumReserve = $this->getValueReserve($data, $amoFieldsConfig['sumReserveField']);
 
             if (!empty($dateReserve) && !empty($timeReserve)) {
                 $date = DateTime::createFromFormat('U.u', $dateReserve . '.0');//->setTime(0, 0, 0);
@@ -92,9 +94,10 @@ class AmoLeadService
             $hookDataDTO->setCountPeople($countPeople);
             $hookDataDTO->setNameReserve($nameReserve);
             $hookDataDTO->setIdReserve($IdReserve);
+            $hookDataDTO->setSumReserve($sumReserve);
 
         } catch (Exception $e) {
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод ошибки: " . print_r($hookDataDTO, true));
+            LoggingService::save($hookDataDTO->getMessage(), "Error", "webhook");
         }
     }
 
@@ -110,7 +113,7 @@ class AmoLeadService
                 }
             }
         } catch (Exception $e) {
-            $this->webhookService->logToFile(AMO_WEBHOOK_FILE, "Вывод ошибки: " . print_r($hookDataDTO, true));
+            LoggingService::save($hookDataDTO->getMessage(), "Error", "webhook");
         }
     }
 
@@ -207,7 +210,6 @@ class AmoLeadService
 
     private function getValueReserve($data, mixed $inputField): mixed
     {
-
         $fieldValue = "";
         foreach ($data as $item) {
             if ($item['field_id'] == $inputField) {
@@ -218,63 +220,4 @@ class AmoLeadService
         return $fieldValue;
     }
 
-    private function getDateReserve($data, mixed $dataReserveField)
-    {
-        $dateReserve = "";
-        foreach ($data as $item) {
-            if ($item['field_id'] == $dataReserveField) {
-                $dateReserve = $item['values'][0]['value'];  // Извлекаем значение
-                break;  // Прерываем цикл, так как мы нашли нужный элемент
-            }
-        }
-        return $dateReserve;
-    }
-
-    private function getCountPeople($data, mixed $countPeopleField)
-    {
-        $countPeople = "";
-        foreach ($data as $item) {
-            if ($item['field_id'] == $countPeopleField) {
-                $countPeople = $item['values'][0]['value'];  // Извлекаем значение
-                break; // Прерываем цикл, так как мы нашли нужный элемент
-            }
-        }
-        return $countPeople;
-    }
-
-    private function getTimeReserve($data, mixed $timeReserveField)
-    {
-        $timeReserve = "";
-        foreach ($data as $item) {
-            if ($item['field_id'] == $timeReserveField) {
-                $timeReserve = $item['values'][0]['value'];  // Извлекаем значение
-                break;  // Прерываем цикл, так как мы нашли нужный элемент
-            }
-        }
-        return $timeReserve;
-    }
-
-    private function getNameReserve($data, mixed $nameReserveField)
-    {
-        $nameReserve = "";
-        foreach ($data as $item) {
-            if ($item['field_id'] == $nameReserveField) {
-                $nameReserve = $item['values'][0]['value'];  // Извлекаем значение
-                break;  // Прерываем цикл, так как мы нашли нужный элемент
-            }
-        }
-        return $nameReserve;
-    }
-
-    private function getIdReserve($data, mixed $idReserveField)
-    {
-        $idReserve = "";
-        foreach ($data as $item) {
-            if ($item['field_id'] == $idReserveField) {
-                $idReserve = $item['values'][0]['value'];  // Извлекаем значение
-                break;  // Прерываем цикл, так как мы нашли нужный элемент
-            }
-        }
-        return $idReserve;
-    }
 }
