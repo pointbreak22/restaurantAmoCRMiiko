@@ -4,14 +4,16 @@ namespace App\Service\AmoCRM;
 
 class AmoRequestService
 {
-    public function makeRequest($method, $url, $accessToken, $data = [])
+    public function makeRequest($method, $url, $data = [])
     {
 
         $headers = [
-            "Authorization: Bearer {$accessToken->getToken()}",
+            //  "Authorization: Bearer {$accessToken->getToken()}",
+            "Authorization: Bearer " . AMO_TOKEN,
             "Content-Type: application/json",
         ];
 
+        //   dd($headers);
         if (strtoupper($method) === "PATCH" && !str_contains($url, 'disable_webhooks=1')) {
             $url .= (!str_contains($url, '?') ? '?' : '&') . 'disable_webhooks=1';
         }

@@ -5,22 +5,18 @@ namespace App\Service\AmoCRM;
 use App\Service\LoggingService;
 use DateTime;
 use Exception;
-use League\OAuth2\Client\Token\AccessToken;
 
 class AmoLeadService
 {
 
-    private AccessToken $accessToken;
+
     private string $baseUrl;
     private AmoRequestService $amoRequestService;
 
-
-    function __construct($accessToken)
+    function __construct()
     {
-
         $this->amoRequestService = new AmoRequestService();
-        $this->accessToken = $accessToken;
-        $this->baseUrl = "https://{$accessToken->getValues()['baseDomain']}";
+        $this->baseUrl = "https://" . BASE_DOMAIN;
 
     }
 
@@ -29,13 +25,11 @@ class AmoLeadService
      */
     public function doHookData($leadId, $hookDataDTO): array
     {
-
         $leadResponse = $this->getLeadById($leadId);
         if ($leadResponse['status'] >= 400) {
-            return $leadResponse;
+            return $leadResponse;  //Вывод полей сделки
         }
-        //Вывод полей сделки
-        //  return $leadResponse;
+
         $leadArray = $leadResponse['data']['custom_fields_values'];
         $this->writeLeadToHookData($leadArray, $hookDataDTO);
         $contactId = $leadResponse['data']['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
@@ -56,9 +50,7 @@ class AmoLeadService
     private function writeLeadToHookData($data, $hookDataDTO): void
     {
         try {
-
             $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
-
             $createdReserve = $this->getCreatedReserve($data, $amoFieldsConfig['createReserveField']);
             $dateReserve = $this->getValueReserve($data, $amoFieldsConfig['dataReserveField']);
             $timeReserve = $this->getValueReserve($data, $amoFieldsConfig['timeReserveField']);
@@ -120,22 +112,20 @@ class AmoLeadService
     private function getLeadById($leadId): array
     {
         $url = "{$this->baseUrl}/api/v4/leads/{$leadId}?with=contacts";
-        $response = $this->amoRequestService->makeRequest('GET', $url, $this->accessToken);
+        $response = $this->amoRequestService->makeRequest('GET', $url);
         return $response;
     }
 
     private function getContactsByIds($contactId): array
     {
         $url = "{$this->baseUrl}/api/v4/contacts/{$contactId}";
-        $response = $this->amoRequestService->makeRequest('GET', $url, $this->accessToken);
+        $response = $this->amoRequestService->makeRequest('GET', $url);
         return $response;
     }
 
     public function addNoteToLead(int $leadId, string $text): mixed
     {
-
         $url = "{$this->baseUrl}/api/v4/leads/notes";
-
         // Формирование данных примечания
         $data = [
             [
@@ -144,12 +134,11 @@ class AmoLeadService
                 "params" => [
                     "text" => $text
                 ],
-
             ]
         ];
 
         // Отправка POST-запроса
-        return $this->amoRequestService->makeRequest('POST', $url, $this->accessToken, $data);
+        return $this->amoRequestService->makeRequest('POST', $url, $data);
     }
 
     public function editReserveInfo(int $leadId, string $value): mixed
@@ -167,11 +156,9 @@ class AmoLeadService
                 ]
             ],
             'request_id' => uniqid(), // Уникальный идентификатор запроса
-
         ];
-        return $this->amoRequestService->makeRequest('PATCH', $url, $this->accessToken, $data);
+        return $this->amoRequestService->makeRequest('PATCH', $url, $data);
     }
-
 
     public function editCreatedReserveInfo(int $leadId): mixed
     {
@@ -191,9 +178,8 @@ class AmoLeadService
             'request_id' => uniqid(), // Уникальный идентификатор запроса
         ];
 
-        return $this->amoRequestService->makeRequest('PATCH', $url, $this->accessToken, $data);
+        return $this->amoRequestService->makeRequest('PATCH', $url, $data);
     }
-
 
     private function getCreatedReserve($data, mixed $createReserveField): bool
     {

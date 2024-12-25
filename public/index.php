@@ -22,6 +22,7 @@ try {
 
     define("AMO_CLIENT_ID", $_SERVER['AMO_CLIENT_ID']);
     define("AMO_CLIENT_SECRET", $_SERVER['AMO_CLIENT_SECRET']);
+    define("AMO_TOKEN", $_SERVER['AMO_TOKEN']);
 
 
     //define("HOST_SERVER", $_SERVER['SERVER_NAME'] . $_SERVER['REDIRECT_URL']);

@@ -21,7 +21,6 @@ use Exception;
 class WebhookController extends Controller
 {
     private WebhookService $webhookService;
-    private AmoAuthService $amoAuthService;
 
 
     private IikoTableReservationService $ikoTableReservationService;
@@ -30,7 +29,7 @@ class WebhookController extends Controller
     function __construct()
     {
         $this->webhookService = new WebhookService();
-        $this->amoAuthService = new AmoAuthService();
+
 
         $this->ikoTableReservationService = new IikoTableReservationService();
     }
@@ -50,28 +49,16 @@ class WebhookController extends Controller
             $hookDataDTO->setLeadId($leadID);
 
             //получение токена
-            $accessToken = $this->amoAuthService->initializeToken(true);
-
-            if (!isset($accessToken)) {
-                $this->response()->send(
-                    json_encode(['status' => 'Требуется авторизация']),
-                    401,
-                    ['Content-Type: application/json'],
-                );
-                throw new Exception("Статус ошибка: отсутствует авторизация");
-            }
-            $amoLeadService = new AmoLeadService($accessToken);
+            $amoLeadService = new AmoLeadService();
             $result = $amoLeadService->doHookData($leadID, $hookDataDTO);
             //  LoggingService::save($result, "info", "webhook");
 
             //  return;
             if (isset($result['status']) && $result['status'] >= 400) {
-
-
                 LoggingService::save($result, "Error", "webhook");
                 exit;
-
             }
+            
             if (!$hookDataDTO->isCreatedReserve()) {
                 $this->response()->send(
                     json_encode(['status' => 'success']),
@@ -100,7 +87,6 @@ class WebhookController extends Controller
             }
 
             if (!empty($hookDataDTO->getIdReserve())) {
-
                 $this->response()->send(
                     json_encode(['status' => 'success']),
                     200,
@@ -120,7 +106,6 @@ class WebhookController extends Controller
 
                     if (isset($resultNode['status']) && $resultNode['status'] >= 400) {
                         throw new Exception("Ошибка: " . print_r($resultNode, true));
-
                     }
                     $resultNode = $amoLeadService->editReserveInfo($hookDataDTO->getLeadId(), $idReserve);
                     if (isset($resultNode['status']) && $resultNode['status'] >= 400) {
