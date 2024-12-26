@@ -2,6 +2,8 @@
 
 namespace App\Service\AmoCRM;
 
+use App\DTO\LeadDTO;
+use App\Service\AmoCRM\Core\AmoHttpClient;
 use App\Service\LoggingService;
 use DateTime;
 use Exception;
@@ -9,13 +11,12 @@ use Exception;
 class AmoLeadService
 {
 
-
     private string $baseUrl;
-    private AmoRequestService $amoRequestService;
+    private AmoHttpClient $amoRequestService;
 
     function __construct()
     {
-        $this->amoRequestService = new AmoRequestService();
+        $this->amoRequestService = new AmoHttpClient();
         $this->baseUrl = "https://" . AMO_DOMAIN;
 
     }
@@ -23,34 +24,62 @@ class AmoLeadService
     /**
      * @throws Exception
      */
-    public function doHookData($leadId, $hookDataDTO): void
+    public function getLeadDTO($data): LeadDTO
     {
+        $leadDTO = new LeadDTO();
+        $leadId = $this->getLeadID($data);
+        $leadDTO->setLeadId($leadId);
+
         $leadResponse = $this->getLeadById($leadId);
-        LoggingService::save($leadResponse, "info", "webhook");
-        $leadArray = $leadResponse['data']['custom_fields_values'];
-        $this->writeLeadToHookData($leadArray, $hookDataDTO);
-        $contactId = $leadResponse['data']['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
+        //LoggingService::save($leadResponse, "info", "webhook"); //нужно для логирования данных сделки
+
+        $leadArray = $leadResponse['custom_fields_values'];
+        $this->writeLeadToHookData($leadArray, $leadDTO);
+        $contactId = $leadResponse['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
         $contactResponse = $this->getContactsByIds($contactId); // Получаем подробности о контактах
-        $contactName = $contactResponse['data']['name'];
-        $hookDataDTO->setContactName($contactName);
-        $contactArray = $contactResponse['data']['custom_fields_values'];
-        $this->writeContactToHookData($contactArray, $hookDataDTO);
+        $contactName = $contactResponse['name'];
+        $leadDTO->setContactName($contactName);
+        $contactArray = $contactResponse['custom_fields_values'];
+        $this->writeContactToHookData($contactArray, $leadDTO);
+
+        return $leadDTO;
     }
 
     /**
      * @throws Exception
      */
-    private function writeLeadToHookData($data, $hookDataDTO): void
+    private function getLeadID($data): ?string
+    {
+        // Проверка на наличие данных о лидах
+        if (isset($data["leads"]["update"][0]['id'])) {
+            $leadID = $data["leads"]["update"][0]['id'];
+        } elseif (isset($data["leads"]["add"][0]['id'])) {
+            $leadID = $data["leads"]["add"][0]['id'];
+        } else {
+            throw new Exception("Invalid lead id");
+        }
+        return $leadID;
+
+    }
+
+
+    /**
+     * @throws Exception
+     */
+    private function writeLeadToHookData($data, $leadDTO): void
     {
         try {
             $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
             $createdReserve = $this->getCreatedReserve($data, $amoFieldsConfig['createReserveField']);
+
+
             $dateReserve = $this->getValueReserve($data, $amoFieldsConfig['dataReserveField']);
             $timeReserve = $this->getValueReserve($data, $amoFieldsConfig['timeReserveField']);
             $countPeople = $this->getValueReserve($data, $amoFieldsConfig['countPeopleField']);
             $nameReserve = $this->getValueReserve($data, $amoFieldsConfig['nameReserveField']);
             $IdReserve = $this->getValueReserve($data, $amoFieldsConfig['idReserveField']);
             $sumReserve = $this->getValueReserve($data, $amoFieldsConfig['sumReserveField']);
+
 
             if (!empty($dateReserve) && !empty($timeReserve)) {
                 $date = DateTime::createFromFormat('U.u', $dateReserve . '.0');//->setTime(0, 0, 0);
@@ -70,34 +99,34 @@ class AmoLeadService
 
                 $durationInMinutes = ($endDateTime->getTimestamp() - $startDateTime->getTimestamp()) / 60;
 
-                $hookDataDTO->setDataReserve($startDateTime->format('Y-m-d H:i:s.v'));
-                $hookDataDTO->setTimeReserve($durationInMinutes);
+                $leadDTO->setDataReserve($startDateTime->format('Y-m-d H:i:s.v'));
+                $leadDTO->setTimeReserve($durationInMinutes);
             }
 
-            $hookDataDTO->setCreatedReserve($createdReserve);
-            $hookDataDTO->setCountPeople($countPeople);
-            $hookDataDTO->setNameReserve($nameReserve);
-            $hookDataDTO->setIdReserve($IdReserve);
-            $hookDataDTO->setSumReserve($sumReserve);
+            $leadDTO->setCreatedReserve($createdReserve);
+            $leadDTO->setCountPeople($countPeople);
+            $leadDTO->setNameReserve($nameReserve);
+            $leadDTO->setIdReserve($IdReserve);
+            $leadDTO->setSumReserve($sumReserve);
 
         } catch (Exception $e) {
-            LoggingService::save($hookDataDTO->getMessage(), "Error", "webhook");
+            LoggingService::save($leadDTO->getMessage(), "Error", "webhook");
         }
     }
 
-    private function writeContactToHookData($data, $hookDataDTO): void
+    private function writeContactToHookData($data, $leadDTO): void
     {
         try {
             foreach ($data as $item) {
                 if ($item['field_code'] == 'EMAIL') {
-                    $hookDataDTO->setContactEmail($item['values'][0]['value']);
+                    $leadDTO->setContactEmail($item['values'][0]['value']);
                 }
                 if ($item['field_code'] == 'PHONE') {
-                    $hookDataDTO->setContactPhone($item['values'][0]['value']);
+                    $leadDTO->setContactPhone($item['values'][0]['value']);
                 }
             }
         } catch (Exception $e) {
-            LoggingService::save($hookDataDTO->getMessage(), "Error", "webhook");
+            LoggingService::save($leadDTO->getMessage(), "Error", "webhook");
         }
     }
 
@@ -128,7 +157,7 @@ class AmoLeadService
         // Формирование данных примечания
         $data = [
             [
-                "entity_id" => $leadId,
+                "entity_id" => (int)$leadId,
                 "note_type" => "common", // Тип примечания (обычное текстовое примечание)
                 "params" => [
                     "text" => $text

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 
-use App\DTO\HookDataDTO;
+use App\DTO\LeadDTO;
 use App\Kernel\Controller\Controller;
 use App\Service\IIKO\Core\IikoTokenService;
 use App\Service\IikoTableReservationService;
@@ -37,7 +37,7 @@ class HomeController extends Controller
     public function iiko(): void
     {
 
-        $hookDataDTO = new HookDataDTO();
+        $hookDataDTO = new LeadDTO();
         $hookDataDTO->setDataReserve('2024-12-20 14:15:22.123');
         $hookDataDTO->setTimeReserve('180');
         $hookDataDTO->setCountPeople('4');

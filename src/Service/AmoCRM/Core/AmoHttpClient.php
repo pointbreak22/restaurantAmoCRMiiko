@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Service\AmoCRM;
+namespace App\Service\AmoCRM\Core;
 
 use Exception;
 
-class AmoRequestService
+class AmoHttpClient
 {
     public function makeRequest($method, $url, $data = []): array
     {

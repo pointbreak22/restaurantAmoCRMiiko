@@ -3,15 +3,15 @@
 namespace App\Tests;
 
 use App\Kernel\Controller\Controller;
-use App\Service\AmoCRM\AmoRequestService;
+use App\Service\AmoCRM\Core\AmoHttpClient;
 
 class AmoCrmTokenTest extends Controller
 {
-    private AmoRequestService $amoRequestService;
+    private AmoHttpClient $amoRequestService;
 
     function __construct()
     {
-        $this->amoRequestService = new AmoRequestService();
+        $this->amoRequestService = new AmoHttpClient();
     }
 
     /**

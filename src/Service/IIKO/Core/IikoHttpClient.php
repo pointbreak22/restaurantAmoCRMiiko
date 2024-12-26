@@ -15,14 +15,12 @@ class IikoHttpClient
     {
 
         $url = $apiUrl . $apiMethod;
-
         $headers = [];
         if (!isset($params['apiLogin'])) {
             $headers = ['Authorization: Bearer ' . $apiToken];
         }
         // Prepare headers
         $headers = array_merge($this->headers, $headers);
-
         // Initialize cURL session
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -38,9 +36,8 @@ class IikoHttpClient
         }
         // Execute the cURL request
         $response = curl_exec($ch);
-
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+        $responseData = json_decode($response, true);
 
         if ($httpCode != 200) {
             throw new Exception(message: $response, code: $httpCode);
@@ -50,10 +47,6 @@ class IikoHttpClient
 
         curl_close($ch);
 
-        $arrayList = json_decode($response, true);
-
-        return ['status' => $httpCode, 'data' => $arrayList];
-
-
+        return $responseData;
     }
 }

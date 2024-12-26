@@ -2,7 +2,7 @@
 
 namespace App\DTO;
 
-class HookDataDTO
+class LeadDTO
 {
 
     private bool $createdReserve = false;

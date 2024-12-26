@@ -4,6 +4,7 @@
 use App\Kernel\Router\Route;
 use App\Tests\AmoCrmTokenTest;
 use App\Tests\IikoTokenTest;
+use App\Tests\LogTest;
 
 return [
 
@@ -14,5 +15,6 @@ return [
     // Tests
     Route::get('/test/tokenAMOCRM', [AmoCrmTokenTest::class, 'index']),
     Route::get('/test/tokenIIKO', [IikoTokenTest::class, 'index']),
+    Route::get('/test/log', [LogTest::class, 'index']),
 
 ];
