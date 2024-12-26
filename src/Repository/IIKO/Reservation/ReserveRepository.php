@@ -18,7 +18,7 @@ class ReserveRepository extends MainRepository
         parent::__construct();
     }
 
-    public function get(string $organizationId, array $reserveIds, string $apiToken)
+    public function get(string $organizationId, array $reserveIds, string $apiToken): array
     {
         $params = [
             'organizationId' => $organizationId,
@@ -28,14 +28,13 @@ class ReserveRepository extends MainRepository
 
     }
 
-    public function set(ReserveDTO $reserve, string $apiToken)
+    public function set(ReserveDTO $reserve, string $apiToken): array
     {
         $phone = $reserve->getPhone();
         $params = [
             "organizationId" => $reserve->getOrganizationId(),  //организация
             "terminalGroupId" => $reserve->getTerminalGroupId(), //группа
             "order" => [
-                //       "menuId" => null,
                 "items" => [
                     [
                         "productId" => $reserve->getProductId(),

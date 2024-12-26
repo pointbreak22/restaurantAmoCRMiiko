@@ -4,7 +4,7 @@ namespace App\Repository\IIKO\Reservation;
 
 use App\Repository\IIKO\MainRepository;
 
-class PaymentRepository extends MainRepository //available_restaurant_sections
+class PaymentRepository extends MainRepository
 {
     private string $method = '/api/1/payment_types';
 
@@ -13,11 +13,10 @@ class PaymentRepository extends MainRepository //available_restaurant_sections
         parent::__construct();
     }
 
-    public function get($organizationsId, $apiToken)
+    public function get($organizationsId, $apiToken): array
     {
         $params = [
             "organizationIds" => $organizationsId,
-            //   "includeDisabled" => true,
         ];
 
         return $this->request($this->method, $params, $apiToken);

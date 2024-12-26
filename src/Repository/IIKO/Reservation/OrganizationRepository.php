@@ -8,7 +8,7 @@ use App\Repository\IIKO\MainRepository;
  * Подключение конфигов, получение организации
  *
  */
-class OrganizationRepository extends MainRepository //available_restaurant_sections
+class OrganizationRepository extends MainRepository
 {
     private string $method = '/api/1/organizations';
 
@@ -17,11 +17,10 @@ class OrganizationRepository extends MainRepository //available_restaurant_secti
         parent::__construct();
     }
 
-    public function get($apiToken)
+    public function get($apiToken): array
     {
         $params = [
             "returnAdditionalInfo" => true,
-            //   "includeDisabled" => true,
         ];
 
         return $this->request($this->method, $params, $apiToken);

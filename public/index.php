@@ -16,22 +16,11 @@ try {
 
     define("APP_ENV", $_SERVER['APP_ENV']);
     define("APP_URL", $_SERVER['APP_URL']);
-    define("APP_PROJECT", $_SERVER['APP_PROJECT']);
     define("IIKO_API_KEY", $_SERVER['IIKO_API_KEY']);
-
-
     define("AMO_CLIENT_ID", $_SERVER['AMO_CLIENT_ID']);
     define("AMO_CLIENT_SECRET", $_SERVER['AMO_CLIENT_SECRET']);
     define("AMO_TOKEN", $_SERVER['AMO_TOKEN']);
-
-
-    //define("HOST_SERVER", $_SERVER['SERVER_NAME'] . $_SERVER['REDIRECT_URL']);
-    // dd(APP_PROJECT);
-
-    //  dd(HOST_SERVER);
-
-    //define("HOST_SERVER", $_SERVER['HTTP_X_FORWARDED_HOST']);
-    define("BASE_DOMAIN", $_SERVER['BASE_DOMAIN']);
+    define("AMO_DOMAIN", $_SERVER['AMO_DOMAIN']);
 
 
     $app = new App();

@@ -9,7 +9,7 @@ use App\Repository\IIKO\MainRepository;
  * Получения клиента
  * todo: методы get/set
  */
-class CustomerRepository extends MainRepository //available_restaurant_sections
+class CustomerRepository extends MainRepository
 {
     private string $setMethod = '/api/1/loyalty/iiko/customer/create_or_update';
 
@@ -21,7 +21,7 @@ class CustomerRepository extends MainRepository //available_restaurant_sections
         parent::__construct();
     }
 
-    public function get(string $organizationId, string $value, $apiToken = '', string $type = 'phone'): mixed
+    public function get(string $organizationId, string $value, $apiToken = '', string $type = 'phone'): array|null|CustomerDTO
     {
         $params = [
             $type => $value,

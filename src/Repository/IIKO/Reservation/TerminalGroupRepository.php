@@ -13,7 +13,7 @@ class TerminalGroupRepository extends MainRepository
         parent::__construct();
     }
 
-    public function get(array $organizations, $apiToken)
+    public function get(array $organizations, $apiToken): array
     {
         $params = [
             'organizationIds' => $organizations,

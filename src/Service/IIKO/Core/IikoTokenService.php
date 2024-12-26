@@ -29,7 +29,6 @@ class IikoTokenService
     public function getToken()
     {
         $tokenData = $this->getFileToken();
-        //  dd($tokenData);
         if (empty($tokenData['token'])) {
             $result = $this->getNewApiToken();
 
@@ -87,7 +86,6 @@ class IikoTokenService
         // Преобразуем содержимое в массив
         $tokenData = unserialize(json_decode($fileContent, true));
         if (empty($tokenData)) {
-            //dd(empty($tokenData));
             $tokenData = $this->getNewApiToken();
         }
 

@@ -77,7 +77,6 @@ class IikoTableReservationService
 
         $organizationsId = $this->getOrganisationsId($tokenResult);  //получает организацию
 
-
         if (isset($organizationsId['status']) && $organizationsId['status'] == 401 && empty($tokenResult['data'])) {
             $tokenResult = $this->iikoTokenService->getNewToken();
             if ($this->checkValue($tokenResult)) {
@@ -85,8 +84,6 @@ class IikoTableReservationService
             }
             $organizationsId = $this->getOrganisationsId($tokenResult);
         }
-
-        //    return $organizationsId;
 
         if ($this->checkValue($organizationsId)) {
             return $organizationsId;
@@ -97,7 +94,6 @@ class IikoTableReservationService
 
         $terminalGroupsId = $this->getTerminalGroupsId([$organizationsId[0]], $tokenResult); // из организации получает термальную группу.
 
-        //  return $terminalGroupsId;
 
         if ($this->checkValue($terminalGroupsId)) {
             return $terminalGroupsId;
@@ -105,12 +101,7 @@ class IikoTableReservationService
         if (count($terminalGroupsId) == 0) {
             return ['status' => 400, 'data' => "Отсутствуют группы"];
         }
-
-
         $paymentId = $this->getPaymentType([$organizationsId[0]], $tokenResult); // из организации получает термальную группу.
-
-
-        //  return $terminalGroupsId;
 
         if ($this->checkValue($paymentId)) {
             return $paymentId;
@@ -118,15 +109,12 @@ class IikoTableReservationService
         if (empty($paymentId)) {
             return ['status' => 400, 'data' => "Отсутствует оплата"];
         }
-        //  return ['status' => 400, 'data' => $paymentId];
 
         $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupsId[0]], $hookDataDTO->getNameReserve(), $tokenResult); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
-        //return $tables;
 
         if ($this->checkValue($tables)) {
             return $tables;
         }
-        //   return $tables;
 
         $customerDTO = $this->getCustomer($organizationsId[0], $hookDataDTO->getContactPhone(), $hookDataDTO->getContactName(), $hookDataDTO->getContactEmail(), $tokenResult);
         if ($this->checkValue($customerDTO)) {
@@ -156,9 +144,7 @@ class IikoTableReservationService
             return $reserveInfoResult;
         }
         $reserveId = $reserveInfoResult['data']['reserveInfo']['id'];
-        $reserveFullResult = $this->getReserve($organizationsId[0], [$reserveId], $tokenResult);
-
-        return $reserveFullResult;
+        return $this->getReserve($organizationsId[0], [$reserveId], $tokenResult);
     }
 
     /**
@@ -168,19 +154,15 @@ class IikoTableReservationService
     {
         $response = $this->organizationRepository->get($tokenResult);
 
-        //return $response['data'];
-
         if ($this->checkValue($response)) {
             return $response;
         }
 
-        $result = array_map(function ($organization) {
+        return array_map(function ($organization) {
             return $organization['id'];
         }, array_filter($response['data']['organizations'], function ($organization) use ($name) {
             return isset($organization['name']) && $organization['name'] == $name;
         }));
-
-        return $result;
     }
 
     /**
@@ -190,16 +172,13 @@ class IikoTableReservationService
     {
         $response = $this->terminalGroupRepository->get($organization, $tokenResult);
 
-        //    return $response;
         if ($this->checkValue($response)) {
             return $response;
         }
-        //  dd($response);
-        $result = array_map(function ($terminalGroup) {
+
+        return array_map(function ($terminalGroup) {
             return $terminalGroup['id'];
         }, $response['data']['terminalGroups'][0]['items']);
-
-        return $result;
     }
 
     /**
@@ -208,9 +187,6 @@ class IikoTableReservationService
     private function getAvailableRestaurantSectionsId($terminalGroup, $bankedName, $tokenResult): array
     {
         $response = $this->availableRestaurantSectionsRepository->get($terminalGroup, $tokenResult);
-
-        //  return $response;
-
 
         if ($this->checkValue($response)) {
             return $response;
@@ -226,10 +202,9 @@ class IikoTableReservationService
             return ['status' => 400, 'data' => "Отсутствуют столы в резерве:" . $bankedName];
         }
         //  dd($targetSection);
-        $result = array_map(function ($table) {
+        return array_map(function ($table) {
             return $table['id'];
         }, $targetSection['tables']);
-        return $result;
 
     }
 
@@ -266,7 +241,6 @@ class IikoTableReservationService
                 return $result;
             }
 
-            //   return $result;
             $customerDTO = $this->customerRepository->get($organizationId, $phone, $tokenResult);
 
         }
@@ -289,13 +263,11 @@ class IikoTableReservationService
                 break; // Останавливаем цикл после нахождения первого подходящего элемента
             }
         }
-
         return $foundId;
     }
 
     private function setReserve(ReserveDTO $reserve, string $apiToken): array
     {
-
         return $this->tableRepository->set($reserve, $apiToken);
     }
 
@@ -324,7 +296,6 @@ class IikoTableReservationService
             $firstResult = reset($filtered); // Берём первый элемент
             $id = $firstResult['id'] ?? null; // Извлекаем id
         }
-
         return $id;
 
     }
