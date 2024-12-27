@@ -52,12 +52,19 @@ class IikoTableReservationService
      */
     public function execute(LeadDTO $leadDTO): array
     {
+
         $token = $this->getToken();
         $organizationsId = $this->getOrganisationsId($token);  //получает организацию
         $terminalGroupsId = $this->getTerminalGroupsId([$organizationsId[0]], $token); // из организации получает термальную группу.
         $paymentId = $this->getPaymentType([$organizationsId[0]], $token); // из организации получает термальную группу.
         $tables = $this->getAvailableRestaurantSectionsId([$terminalGroupsId[0]], $leadDTO->getNameReserve(), $token); //из терминальной группы получает свободные резервы(столы), и выбор ид заявки
-        $customerDTO = $this->getCustomer($organizationsId[0], $leadDTO->getContactPhone(), $leadDTO->getContactName(), $leadDTO->getContactEmail(), $token);
+        $customerDTO = $this->getCustomer(
+            $organizationsId[0],
+            $leadDTO->getContactPhone(),
+            $leadDTO->getContactName(),
+            $leadDTO->getContactEmail(),
+            $token
+        );
         $productResult = $this->getMenu($organizationsId[0], $token);
 
         $reserveDTO = new ReserveDTO();
@@ -73,8 +80,8 @@ class IikoTableReservationService
         $reserveDTO->setSumReserve($leadDTO->getSumReserve());
         $reserveDTO->setPaymentId($paymentId);
         $reserveId = $this->setReserve($reserveDTO, $token);
-        $response = $this->getReserve($organizationsId[0], [$reserveId], $token);
-        return $response;
+
+        return $this->getReserve($organizationsId[0], [$reserveId], $token);
     }
 
     /**
@@ -83,6 +90,7 @@ class IikoTableReservationService
     private function getToken(): string
     {
         $token = $this->iikoTokenService->getToken();
+
         if (empty($token)) {
             throw new Exception('Нет токена');
         }
@@ -94,10 +102,10 @@ class IikoTableReservationService
      */
     private function getOrganisationsId($tokenResult, $name = "Сиберия"): array
     {
-        $organizationResult = $this->organizationRepository->get($tokenResult);
 
+        $organizationResult = $this->organizationRepository->get($tokenResult);
         if (empty($organizationResult)) {
-            $tokenResult = $this->iikoTokenService->getToken();
+            $tokenResult = $this->iikoTokenService->getNewToken();
             if (empty($tokenResult)) {
                 throw new Exception("Токен IIKO пустой");
             }
@@ -106,7 +114,6 @@ class IikoTableReservationService
                 throw new Exception("Пустой результат организации");
             }
         }
-
         $organizationFiltered = array_map(function ($organization) {
             return $organization['id'];
         }, array_filter($organizationResult['organizations'], function ($organization) use ($name) {
@@ -181,10 +188,10 @@ class IikoTableReservationService
     private function getCustomer($organizationId, $phone, $name, $email, $tokenResult): mixed
     {
         $phone = str_starts_with($phone, "+") ? $phone : "+" . $phone;
-        $customerDTO = $this->customerRepository->get($organizationId, $phone, $tokenResult);
+
+        $customerDTO = $this->customerRepository->get($organizationId, $phone, $tokenResult, true);
 
         if ($customerDTO == null) {
-
             $customerDTO = new CustomerDTO(
                 id: null,
                 phone: $phone,
@@ -201,7 +208,6 @@ class IikoTableReservationService
                 userData: "",
                 organizationId: $organizationId
             );
-
             $this->customerRepository->set($customerDTO, $tokenResult);
             $customerDTO = $this->customerRepository->get($organizationId, $phone, $tokenResult);
 
@@ -234,20 +240,25 @@ class IikoTableReservationService
         return $foundId;
     }
 
-    private function setReserve(ReserveDTO $reserve, string $apiToken): int
+    /**
+     * @throws Exception
+     */
+    private function setReserve(ReserveDTO $reserve, string $apiToken): string
     {
+
         $resultReserve = $this->tableRepository->set($reserve, $apiToken);
 
-        if (!empty($resultReserve['errorInfo'])) {
-            throw new Exception($resultReserve['errorInfo']['message']);
+        $message = $resultReserve["reserveInfo"]['errorInfo']['message'] ?? null;
+
+        if (!empty($message)) {
+            throw new Exception($message);
         }
 
-        $idReserve = $resultReserve['id'] ?? null;
+        $idReserve = $resultReserve["reserveInfo"]['id'] ?? null;
         if (empty($idReserve)) {
             throw new Exception("Сбой в создании резерва");
         }
         return $idReserve;
-
 
     }
 

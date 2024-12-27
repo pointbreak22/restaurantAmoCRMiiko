@@ -16,9 +16,9 @@ class MainRepository
         $this->httpClient = new IikoHttpClient();
     }
 
-    protected function request(string $method, mixed $params = [], $apiToken = ''): array
+    protected function request(string $method, mixed $params = [], $apiToken = '', bool $skipErrorOutput = false): array
     {
 
-        return $this->httpClient->execute($this->url, $method, $apiToken, $params);
+        return $this->httpClient->execute($this->url, $method, $apiToken, $params, $skipErrorOutput);
     }
 }

@@ -172,7 +172,7 @@ class AmoLeadService
     /**
      * @throws Exception
      */
-    public function editReserveInfo(int $leadId, string $value): void
+    public function saveReserveId(int $leadId, string $reserveId): void
     {
         $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
         $url = "{$this->baseUrl}/api/v4/leads/{$leadId}?disable_webhooks=1";
@@ -181,7 +181,7 @@ class AmoLeadService
                 [
                     'field_id' => (int)$amoFieldsConfig['idReserveField'],
                     'values' => [
-                        ['value' => $value !== null ? $value : 'Default Value'] // Установка текстового значения
+                        ['value' => $reserveId] // Установка текстового значения
                     ]
                 ]
             ],
@@ -193,7 +193,7 @@ class AmoLeadService
     /**
      * @throws Exception
      */
-    public function editCreatedReserveInfo(int $leadId): void
+    public function disableSync(int $leadId): void
     {
         $amoFieldsConfig = (include APP_PATH . '/config/amo/values.php')[APP_ENV]['custom_fields'];
 

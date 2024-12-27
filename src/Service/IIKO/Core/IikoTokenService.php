@@ -29,17 +29,12 @@ class IikoTokenService
     public function getToken()
     {
         $tokenData = $this->getFileToken();
+
         if (empty($tokenData['token'])) {
             $result = $this->getNewApiToken();
 
-            if (isset($result['status']) && $result['status'] >= 401) {
-                return $result;
-            }
-
             return $result['token'];
-
         }
-        // dd($tokenData);
         return $tokenData['token'];
     }
 
@@ -49,10 +44,6 @@ class IikoTokenService
     public function getNewToken()
     {
         $result = ($this->getNewApiToken());
-
-        if (isset($result['status']) && $result['status'] >= 401) {
-            return $result;
-        }
         return $result['token'];
     }
 
@@ -62,13 +53,8 @@ class IikoTokenService
     public function getNewApiToken(): array
     {
         $result = $this->tokenRepository->get();
-
-        if (isset($result['status']) && $result['status'] >= 401) {
-            return $result;
-        }
-
-        $this->setFileToken($result['data']);
-        return $result['data'];
+        $this->setFileToken($result);
+        return $result;
 
     }
 
@@ -88,7 +74,6 @@ class IikoTokenService
         if (empty($tokenData)) {
             $tokenData = $this->getNewApiToken();
         }
-
         return $tokenData;
     }
 

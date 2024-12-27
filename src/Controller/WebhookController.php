@@ -4,8 +4,8 @@ namespace App\Controller;
 
 use App\Kernel\Controller\Controller;
 use App\Service\AmoCRM\AmoCheckLeadService;
+use App\Service\AmoCRM\AmoCommentService;
 use App\Service\AmoCRM\AmoLeadService;
-use App\Service\AmoCRM\AmoUpdateLeadService;
 use App\Service\IikoTableReservationService;
 use App\Service\LoggingService;
 use Exception;
@@ -16,14 +16,14 @@ class WebhookController extends Controller
     private AmoLeadService $amoLeadService;
     private AmoCheckLeadService $amoCheckLeadService;
 
-    private AmoUpdateLeadService $amoUpdateLeadService;
+    private AmoCommentService $amoUpdateLeadService;
 
     function __construct()
     {
         $this->ikoTableReservationService = new IikoTableReservationService();
         $this->amoLeadService = new AmoLeadService();
         $this->amoCheckLeadService = new AmoCheckLeadService();
-        $this->amoUpdateLeadService = new AmoUpdateLeadService();
+        $this->amoUpdateLeadService = new AmoCommentService();
     }
 
     /**
@@ -33,20 +33,52 @@ class WebhookController extends Controller
      */
     public function handleWebhook(): void
     {
+        $data = $_POST;
         try {
-            $data = $_POST;
-
             $leadDTO = $this->amoLeadService->getLeadDTO($data);
             $this->amoCheckLeadService->checkDTO($leadDTO);
-            $result = $this->ikoTableReservationService->execute($leadDTO);
-            $this->amoUpdateLeadService->sendMessageLead($result, $leadDTO->getLeadId());
+            $reserve = $this->ikoTableReservationService->execute($leadDTO);
 
+
+            // Комментарий в лид
+            if (empty($reserve['reserves'][0]['errorInfo'])) {
+                $this->amoUpdateLeadService->execute(
+                    leadId: $leadDTO->getLeadId(),
+                    message: '',
+                    type: 'success',
+                );
+
+                // Сохранение ID банкета
+                if ($reserveId = $reserve['reserves'][0]['id']) {
+                    $this->amoLeadService->saveReserveId($leadDTO->getLeadId(), $reserveId);
+                }
+
+            } else {
+                throw new Exception(json_encode($reserve['reserves'][0]['errorInfo']["message"]));
+            }
 
         } catch (Exception $exception) {
+            if (isset($leadDTO) && $leadDTO?->getLeadId()) {
+                // Комментарий в лид
+                $this->amoUpdateLeadService->execute(
+                    leadId: $leadDTO->getLeadId(),
+                    message: json_encode([
+                        'code' => $exception->getCode(),
+                        'message' => $exception->getMessage(),
+                    ], JSON_PRETTY_PRINT),
+                    type: 'error',
+                );
 
+                // Отключение синхронизации
+                $this->amoLeadService->disableSync($leadDTO->getLeadId());
+            }
 
-            LoggingService::save($exception->getMessage(), "Error", "webhook");
+            LoggingService::save(
+                $exception->getMessage(),
+                "Error",
+                "webhook");
         } finally {
+            // Постоянный ответ для AmoCRM
             $this->response()->send(
                 json_encode(['status' => 'success']),
                 200,

@@ -11,9 +11,13 @@ class IikoHttpClient
     /**
      * @throws Exception
      */
-    public function execute(string $apiUrl, string $apiMethod, $apiToken = '', array $params = []): array
+    public function execute(
+        string $apiUrl,
+        string $apiMethod,
+        string $apiToken = '',
+        array  $params = [],
+        bool   $skipErrorOutput = false): array
     {
-
         $url = $apiUrl . $apiMethod;
         $headers = [];
         if (!isset($params['apiLogin'])) {
@@ -39,13 +43,26 @@ class IikoHttpClient
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $responseData = json_decode($response, true);
 
-        if ($httpCode != 200) {
-            throw new Exception(message: $response, code: $httpCode);
-        } else if ($curlErrors = curl_error($ch)) {
-            throw new Exception(message: $curlErrors, code: $httpCode);
+
+        if ($httpCode != 401 && !empty($response) && !$skipErrorOutput) {
+            if ($httpCode != 200) {
+                throw new Exception(message: $response, code: $httpCode);
+            } else if ($curlErrors = curl_error($ch)) {
+                throw new Exception(message: $curlErrors, code: $httpCode);
+            }
+        } elseif ($skipErrorOutput) {
+            $responseData = [];
         }
 
         curl_close($ch);
+
+        if ($apiMethod === '/api/1/reserve/create') {
+            dd(
+                $apiMethod,
+                $params,
+                $responseData,
+            );
+        }
 
         return $responseData;
     }

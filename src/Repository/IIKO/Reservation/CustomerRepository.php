@@ -21,7 +21,7 @@ class CustomerRepository extends MainRepository
         parent::__construct();
     }
 
-    public function get(string $organizationId, string $value, $apiToken = '', string $type = 'phone'): array|null|CustomerDTO
+    public function get(string $organizationId, string $value, $apiToken = '', bool $skipErrorOutput = false, string $type = 'phone'): array|null|CustomerDTO
     {
         $params = [
             $type => $value,
@@ -29,8 +29,7 @@ class CustomerRepository extends MainRepository
             "organizationId" => $organizationId
         ];
 
-
-        $result = $this->request($this->getMethod, $params, $apiToken);
+        $result = $this->request($this->getMethod, $params, $apiToken, $skipErrorOutput);
         return $this->response(result: $result, organizationId: $organizationId);
     }
 
@@ -39,31 +38,28 @@ class CustomerRepository extends MainRepository
 
         $params = $this->toArray(customerDTO: $customerDTO);
         $result = $this->request($this->setMethod, $params, $apiToken);
-
-
         return $result;
     }
 
-    private function response(array $result, string $organizationId): CustomerDTO|array|null
+    private function response(array $result, string $organizationId): CustomerDTO|null
     {
-        //  return $result;
-        if ($result['status'] >= 400) {
+        if (empty($result)) {
             return null;
         } else {
             return new CustomerDTO(
-                id: $result['data']['id'],
-                phone: $result['data']['phone'],
-                cardTrack: isset($result['data']['cards'][0]) ? $result['data']['cards'][0]['track'] : "",
-                cardNumber: isset($result['data']['cards'][0]) ? $result['data']['cards'][0]['number'] : "",
-                name: $result['data']['name'],
-                middleName: $result['data']['middleName'],
-                surName: $result['data']['surname'],
-                birthday: $result['data']['birthday'] ?? date("Y-m-d H:i:s.v"),
-                email: $result['data']['email'],
-                sex: $result['data']['sex'],
-                consentStatus: $result['data']['consentStatus'],
-                shouldReceivePromoActionsInfo: $result['data']['shouldReceivePromoActionsInfo'],
-                userData: $result['data']['userData'],
+                id: $result['id'],
+                phone: $result['phone'],
+                cardTrack: isset($result['cards'][0]) ? $result['cards'][0]['track'] : "",
+                cardNumber: isset($result['cards'][0]) ? $result['cards'][0]['number'] : "",
+                name: $result['name'],
+                middleName: $result['middleName'],
+                surName: $result['surname'],
+                birthday: $result['birthday'] ?? date("Y-m-d H:i:s.v"),
+                email: $result['email'],
+                sex: $result['sex'],
+                consentStatus: $result['consentStatus'],
+                shouldReceivePromoActionsInfo: $result['shouldReceivePromoActionsInfo'],
+                userData: $result['userData'],
                 organizationId: $organizationId
             );
         }

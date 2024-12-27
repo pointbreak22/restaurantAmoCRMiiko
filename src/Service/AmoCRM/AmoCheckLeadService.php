@@ -15,7 +15,7 @@ class AmoCheckLeadService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function checkDTO(LeadDTO $leadDTO): void
     {
@@ -38,27 +38,27 @@ class AmoCheckLeadService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function checkCountPeople(LeadDTO $leadDTO): void
     {
         if (empty($leadDTO->getCountPeople())) {
             $this->amoLeadService->addNoteToLead($leadDTO->getLeadId(), "Статус ошибка: количество людей не установлено");
-            $this->amoLeadService->editCreatedReserveInfo($leadDTO->getLeadId());
-            throw new \Exception("Статус ошибка: количество людей не установлено");
+            $this->amoLeadService->disableSync($leadDTO->getLeadId());
+            throw new Exception("Статус ошибка: количество людей не установлено");
         }
 
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function checkNameReserve(LeadDTO $leadDTO): void
     {
         if (empty($leadDTO->getNameReserve())) {
             $this->amoLeadService->addNoteToLead($leadDTO->getLeadId(), "Статус ошибка:название  резерва не установлено");
-            $this->amoLeadService->editCreatedReserveInfo($leadDTO->getLeadId());
-            throw new \Exception("Статус ошибка:название  резерва не установлено");
+            $this->amoLeadService->disableSync($leadDTO->getLeadId());
+            throw new Exception("Статус ошибка:название  резерва не установлено");
         }
     }
 
@@ -70,7 +70,7 @@ class AmoCheckLeadService
     {
         if (empty($leadDTO->getDataReserve()) || empty($leadDTO->getTimeReserve())) {
             $this->amoLeadService->addNoteToLead($leadDTO->getLeadId(), "Статус ошибка:  дата или время резерва не установлено");
-            $this->amoLeadService->editCreatedReserveInfo($leadDTO->getLeadId());
+            $this->amoLeadService->disableSync($leadDTO->getLeadId());
             throw new Exception("Статус ошибка:  дата или время резерва не установлено--" . $leadDTO->getDataReserve() . "--" . $leadDTO->getTimeReserve());
         }
 
