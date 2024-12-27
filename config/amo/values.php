@@ -7,7 +7,7 @@ return [
             'countPeopleField' => '608039',
             'timeReserveField' => '608037',
             'nameReserveField' => '608041',
-            'createReserveField' => ['id' => '608043', 'Yes' => '944395', 'No' => '931343'],
+            'createReserveField' => ['id' => '608043', 'Yes' => '944395', 'No' => '944397'],
             'sumReserveField' => '609127',
             'idReserveField' => '608045',
 

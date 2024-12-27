@@ -31,7 +31,7 @@ class AmoLeadService
         $leadDTO->setLeadId($leadId);
 
         $leadResponse = $this->getLeadById($leadId);
-        //LoggingService::save($leadResponse, "info", "webhook"); //нужно для логирования данных сделки
+        // LoggingService::save($leadResponse, "info", "webhook"); //нужно для логирования данных сделки
 
         $leadArray = $leadResponse['custom_fields_values'];
         $this->writeLeadToHookData($leadArray, $leadDTO);
@@ -208,8 +208,8 @@ class AmoLeadService
                     ]
                 ]
             ],
-            'request_id' => uniqid(), // Уникальный идентификатор запроса
         ];
+
 
         $this->amoRequestService->makeRequest('PATCH', $url, $data);
     }

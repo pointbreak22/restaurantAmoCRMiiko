@@ -45,7 +45,7 @@ class AmoCheckLeadService
         if (empty($leadDTO->getCountPeople())) {
             $this->amoLeadService->addNoteToLead($leadDTO->getLeadId(), "Статус ошибка: количество людей не установлено");
             $this->amoLeadService->disableSync($leadDTO->getLeadId());
-            throw new Exception("Статус ошибка: количество людей не установлено");
+            exit;
         }
 
     }
@@ -58,7 +58,7 @@ class AmoCheckLeadService
         if (empty($leadDTO->getNameReserve())) {
             $this->amoLeadService->addNoteToLead($leadDTO->getLeadId(), "Статус ошибка:название  резерва не установлено");
             $this->amoLeadService->disableSync($leadDTO->getLeadId());
-            throw new Exception("Статус ошибка:название  резерва не установлено");
+            exit;
         }
     }
 
@@ -71,7 +71,7 @@ class AmoCheckLeadService
         if (empty($leadDTO->getDataReserve()) || empty($leadDTO->getTimeReserve())) {
             $this->amoLeadService->addNoteToLead($leadDTO->getLeadId(), "Статус ошибка:  дата или время резерва не установлено");
             $this->amoLeadService->disableSync($leadDTO->getLeadId());
-            throw new Exception("Статус ошибка:  дата или время резерва не установлено--" . $leadDTO->getDataReserve() . "--" . $leadDTO->getTimeReserve());
+            exit;
         }
 
     }

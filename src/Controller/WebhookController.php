@@ -37,24 +37,22 @@ class WebhookController extends Controller
         try {
             $leadDTO = $this->amoLeadService->getLeadDTO($data);
             $this->amoCheckLeadService->checkDTO($leadDTO);
-            $reserve = $this->ikoTableReservationService->execute($leadDTO);
-
-
+            $reserve = $this->ikoTableReservationService->execute($leadDTO);  //нужно    
             // Комментарий в лид
             if (empty($reserve['reserves'][0]['errorInfo'])) {
-                $this->amoUpdateLeadService->execute(
-                    leadId: $leadDTO->getLeadId(),
-                    message: '',
-                    type: 'success',
-                );
-
                 // Сохранение ID банкета
                 if ($reserveId = $reserve['reserves'][0]['id']) {
                     $this->amoLeadService->saveReserveId($leadDTO->getLeadId(), $reserveId);
                 }
 
+                $this->amoUpdateLeadService->execute(
+                    leadId: $leadDTO->getLeadId(),
+                    message: 'Статус успех, создан резерв: ' . $reserveId,
+                    type: 'success',
+                );
+
             } else {
-                throw new Exception(json_encode($reserve['reserves'][0]['errorInfo']["message"]));
+                throw new Exception($reserve['reserves'][0]['errorInfo']['message']);
             }
 
         } catch (Exception $exception) {
@@ -65,7 +63,7 @@ class WebhookController extends Controller
                     message: json_encode([
                         'code' => $exception->getCode(),
                         'message' => $exception->getMessage(),
-                    ], JSON_PRETTY_PRINT),
+                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
                     type: 'error',
                 );
 
