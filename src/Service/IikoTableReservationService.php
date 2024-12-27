@@ -103,7 +103,7 @@ class IikoTableReservationService
     private function getOrganisationsId($tokenResult, $name = "Сиберия"): array
     {
 
-        $organizationResult = $this->organizationRepository->get($tokenResult);
+        $organizationResult = $this->organizationRepository->get($tokenResult, true);
         if (empty($organizationResult)) {
             $tokenResult = $this->iikoTokenService->getNewToken();
             if (empty($tokenResult)) {

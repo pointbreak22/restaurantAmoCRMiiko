@@ -8,8 +8,8 @@ return [
             'timeReserveField' => '608037',
             'nameReserveField' => '608041',
             'createReserveField' => ['id' => '608043', 'Yes' => '944395', 'No' => '944397'],
-            'sumReserveField' => '609127',
             'idReserveField' => '608045',
+            'sumReserveField' => '609127',
 
 
         ],
@@ -21,9 +21,9 @@ return [
             'countPeopleField' => '921299',
             'timeReserveField' => '1006007',
             'nameReserveField' => '921327',
-            'createReserveField' => ['id' => '1022765', 'Yes' => '647711', 'No' => '944397'],
-
+            'createReserveField' => ['id' => '1022765', 'Yes' => '647711', 'No' => '647713'],
             'idReserveField' => '1022767',
+            'sumReserveField' => '1017357',
 
 
         ],

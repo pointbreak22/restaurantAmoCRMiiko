@@ -19,6 +19,7 @@ try {
     define("IIKO_API_KEY", $_SERVER['IIKO_API_KEY']);
     define("AMO_TOKEN", $_SERVER['AMO_TOKEN']);
     define("AMO_DOMAIN", $_SERVER['AMO_DOMAIN']);
+    define("APP_IS_WORK", $_SERVER['APP_IS_WORK']);
 
 
     $app = new App();

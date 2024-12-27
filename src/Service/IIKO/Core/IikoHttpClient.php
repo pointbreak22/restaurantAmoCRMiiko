@@ -43,6 +43,7 @@ class IikoHttpClient
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $responseData = json_decode($response, true);
 
+
         if ($httpCode != 401 && !empty($response) && !$skipErrorOutput) {
             if ($httpCode != 200) {
                 throw new Exception(message: $response, code: $httpCode);
@@ -52,6 +53,11 @@ class IikoHttpClient
         } elseif ($skipErrorOutput) {
             $responseData = [];
         }
+
+        if ($responseData === null) {
+            throw  new Exception("Отсутствуют данные IIKO с параметрами:" . print_r([$apiMethod, $apiToken, $params, $skipErrorOutput, $httpCode, $responseData], true));
+        }
+
 
         curl_close($ch);
         return $responseData;

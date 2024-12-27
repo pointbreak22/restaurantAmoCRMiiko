@@ -15,7 +15,6 @@ class WebhookController extends Controller
     private IikoTableReservationService $ikoTableReservationService;
     private AmoLeadService $amoLeadService;
     private AmoCheckLeadService $amoCheckLeadService;
-
     private AmoCommentService $amoUpdateLeadService;
 
     function __construct()
@@ -26,35 +25,36 @@ class WebhookController extends Controller
         $this->amoUpdateLeadService = new AmoCommentService();
     }
 
-    /**
-     * todo: Изменить HookDataDTO (переименовать, формировать его в сервисе или репозитории)
-     * todo: Проверки условий заполненности полей вынести в отдельный сервис
-     * todo: Создание бронирования и проверку ответа убрать из контроллера
-     */
     public function handleWebhook(): void
     {
-        $data = $_POST;
         try {
-            $leadDTO = $this->amoLeadService->getLeadDTO($data);
-            $this->amoCheckLeadService->checkDTO($leadDTO);
-            $reserve = $this->ikoTableReservationService->execute($leadDTO);  //нужно    
-            // Комментарий в лид
-            if (empty($reserve['reserves'][0]['errorInfo'])) {
-                // Сохранение ID банкета
-                if ($reserveId = $reserve['reserves'][0]['id']) {
-                    $this->amoLeadService->saveReserveId($leadDTO->getLeadId(), $reserveId);
+            // Проверка статуса приложения
+            if (APP_IS_WORK === 'true') {
+
+                $data = $_POST;
+
+                $leadDTO = $this->amoLeadService->getLeadDTO($data);
+                $this->amoCheckLeadService->checkDTO($leadDTO);
+                $reserve = $this->ikoTableReservationService->execute($leadDTO);  //нужно
+
+
+                // Комментарий в лид
+                if (empty($reserve['reserves'][0]['errorInfo'])) {
+                    // Сохранение ID банкета
+                    if ($reserveId = $reserve['reserves'][0]['id']) {
+                        $this->amoLeadService->saveReserveId($leadDTO->getLeadId(), $reserveId);
+                    }
+
+                    $this->amoUpdateLeadService->execute(
+                        leadId: $leadDTO->getLeadId(),
+                        message: 'Статус успех, создан банкет: ' . $reserveId,
+                        type: 'success',
+                    );
+
+                } else {
+                    throw new Exception($reserve['reserves'][0]['errorInfo']['message']);
                 }
-
-                $this->amoUpdateLeadService->execute(
-                    leadId: $leadDTO->getLeadId(),
-                    message: 'Статус успех, создан резерв: ' . $reserveId,
-                    type: 'success',
-                );
-
-            } else {
-                throw new Exception($reserve['reserves'][0]['errorInfo']['message']);
             }
-
         } catch (Exception $exception) {
             if (isset($leadDTO) && $leadDTO?->getLeadId()) {
                 // Комментарий в лид

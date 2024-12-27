@@ -17,12 +17,12 @@ class OrganizationRepository extends MainRepository
         parent::__construct();
     }
 
-    public function get($apiToken): array
+    public function get($apiToken, $skipErrorOutput = false): array
     {
         $params = [
             "returnAdditionalInfo" => true,
         ];
 
-        return $this->request($this->method, $params, $apiToken);
+        return $this->request($this->method, $params, $apiToken, $skipErrorOutput);
     }
 }

@@ -9,14 +9,14 @@ use App\Tests\LogTest;
 
 return [
 
-    Route::get('/', [\App\Controller\HomeController::class, 'index']),
-    Route::post('/webhook/handler', [\App\Controller\WebhookController::class, 'handleWebhook']),
+    Route::get('/amocrm-iiko/', [\App\Controller\HomeController::class, 'index']),
+    Route::post('/amocrm-iiko/webhook/handler', [\App\Controller\WebhookController::class, 'handleWebhook']),
 
 
     // Tests
-    Route::get('/test/tokenAMOCRM', [AmoCrmTokenTest::class, 'index']),
-    Route::get('/test/tokenIIKO', [IikoTokenTest::class, 'index']),
-    Route::get('/test/log', [LogTest::class, 'index']),
-    Route::get('/test/reserve', [CreateReserveIIKO::class, 'index']),
+    Route::get('/amocrm-iiko/test/tokenAMOCRM', [AmoCrmTokenTest::class, 'index']),
+    Route::get('/amocrm-iiko/test/tokenIIKO', [IikoTokenTest::class, 'index']),
+    Route::get('/amocrm-iikotest/log', [LogTest::class, 'index']),
+    Route::get('/amocrm-iiko/test/reserve', [CreateReserveIIKO::class, 'index']),
 
 ];

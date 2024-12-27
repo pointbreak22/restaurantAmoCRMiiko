@@ -31,7 +31,7 @@ class AmoLeadService
         $leadDTO->setLeadId($leadId);
 
         $leadResponse = $this->getLeadById($leadId);
-        // LoggingService::save($leadResponse, "info", "webhook"); //нужно для логирования данных сделки
+        LoggingService::save($leadResponse, "info", "webhook"); //нужно для логирования данных сделки
 
         $leadArray = $leadResponse['custom_fields_values'];
         $this->writeLeadToHookData($leadArray, $leadDTO);
