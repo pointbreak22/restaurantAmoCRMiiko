@@ -43,7 +43,6 @@ class IikoHttpClient
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $responseData = json_decode($response, true);
 
-
         if ($httpCode != 401 && !empty($response) && !$skipErrorOutput) {
             if ($httpCode != 200) {
                 throw new Exception(message: $response, code: $httpCode);
@@ -55,15 +54,6 @@ class IikoHttpClient
         }
 
         curl_close($ch);
-
-        if ($apiMethod === '/api/1/reserve/create') {
-            dd(
-                $apiMethod,
-                $params,
-                $responseData,
-            );
-        }
-
         return $responseData;
     }
 }

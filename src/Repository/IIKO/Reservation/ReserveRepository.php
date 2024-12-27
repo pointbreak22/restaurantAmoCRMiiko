@@ -47,6 +47,8 @@ class ReserveRepository extends MainRepository
                     'paymentTypeKind' => "Card",
                     'sum' => $reserve->getSumReserve(),
                     'paymentTypeId' => $reserve->getPaymentId(),
+                    'isPrepay' => true,
+
                 ],
 
                 ]
