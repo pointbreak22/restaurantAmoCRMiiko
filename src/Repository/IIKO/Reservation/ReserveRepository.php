@@ -48,7 +48,8 @@ class ReserveRepository extends MainRepository
                     'sum' => $reserve->getSumReserve(),
                     'paymentTypeId' => $reserve->getPaymentId(),
                     'isPrepay' => true,
-
+                    'isProcessedExternally' => true,
+                    'isFiscalizedExternally' => true,
                 ],
 
                 ]

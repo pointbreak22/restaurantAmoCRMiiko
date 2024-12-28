@@ -10,7 +10,6 @@ use Exception;
 
 class AmoLeadService
 {
-
     private string $baseUrl;
     private AmoHttpClient $amoRequestService;
 
@@ -18,7 +17,6 @@ class AmoLeadService
     {
         $this->amoRequestService = new AmoHttpClient();
         $this->baseUrl = "https://" . AMO_DOMAIN;
-
     }
 
     /**
@@ -26,13 +24,12 @@ class AmoLeadService
      */
     public function getLeadDTO($data): LeadDTO
     {
+
         $leadDTO = new LeadDTO();
+
         $leadId = $this->getLeadID($data);
         $leadDTO->setLeadId($leadId);
-
         $leadResponse = $this->getLeadById($leadId);
-        LoggingService::save($leadResponse, "info", "webhook"); //нужно для логирования данных сделки
-
         $leadArray = $leadResponse['custom_fields_values'];
         $this->writeLeadToHookData($leadArray, $leadDTO);
         $contactId = $leadResponse['_embedded']['contacts'][0]['id']; // Получаем все ID контактов
@@ -116,17 +113,13 @@ class AmoLeadService
 
     private function writeContactToHookData($data, $leadDTO): void
     {
-        try {
-            foreach ($data as $item) {
-                if ($item['field_code'] == 'EMAIL') {
-                    $leadDTO->setContactEmail($item['values'][0]['value']);
-                }
-                if ($item['field_code'] == 'PHONE') {
-                    $leadDTO->setContactPhone($item['values'][0]['value']);
-                }
+        foreach ($data as $item) {
+            if ($item['field_code'] == 'EMAIL') {
+                $leadDTO->setContactEmail($item['values'][0]['value']);
             }
-        } catch (Exception $e) {
-            LoggingService::save($leadDTO->getMessage(), "Error", "webhook");
+            if ($item['field_code'] == 'PHONE') {
+                $leadDTO->setContactPhone($item['values'][0]['value']);
+            }
         }
     }
 

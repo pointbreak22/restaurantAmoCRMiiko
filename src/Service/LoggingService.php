@@ -27,7 +27,6 @@ class LoggingService
         } else {
             $jsonLog = json_encode($dataToJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
-
         return (bool)file_put_contents($path . $file, $jsonLog);
     }
 }
