@@ -80,7 +80,6 @@ class BanquetController extends Controller
                 } else {
                     throw new Exception($reserve['reserves'][0]['errorInfo']['message']);
                 }
-
                 sleep(rand(1, 2));
 
             } catch (Exception $exception) {
